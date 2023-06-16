@@ -1,0 +1,21 @@
+package com.example.chitchat.data.Chat;
+
+import androidx.room.Dao;
+import androidx.room.Delete;
+import androidx.room.Insert;
+import androidx.room.Query;
+import androidx.room.Update;
+
+@Dao
+public interface ChatDao {
+
+    @Query("SELECT * FROM chat WHERE chatId = :chatId")
+    ChatEntity getChatById(int chatId);
+
+    @Insert
+    void createChat(ChatEntity chat);
+    @Update
+    void updateChat(ChatEntity chat);
+    @Delete
+    void deleteChat(ChatEntity chat);
+}

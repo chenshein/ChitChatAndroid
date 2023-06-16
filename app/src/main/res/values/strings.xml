@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">ChitChat</string>
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="login_button">Login</string>
+    <string name="login_title">Login</string>
+    <string name="already_register_login">New here ? Press here to sign up</string>
+    <string name="already_login_inSignUp">Already registered? Press here to login</string>
+    <string name="sign_up_title">Sign Up</string>
+    <string name="displayName_signUp">displayName</string>
+    <string name="confirm_password_signUp">Confirm password</string>
+    <string name="sign_up_button">sign up</string>
+    <string name="welcome_to_chit_chat_app">Welcome to Chit Chat App</string>
+    <string name="chat_type">Type here...</string>
+    <string name="BaseUrl">http://10.0.2.2:5000/api/</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+</resources>
