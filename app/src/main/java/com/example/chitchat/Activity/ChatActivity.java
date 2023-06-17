@@ -1,24 +1,21 @@
 package com.example.chitchat.Activity;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.chitchat.R;
-import com.example.chitchat.data.User.UserEntity;
 
 public class ChatActivity extends AppCompatActivity {
 
     String otherUserName;
     String otherUserImg;
     String otherUserDisplayName;
-
 
     EditText input_msg;
     ImageButton sent_msg_btn;
@@ -47,8 +44,10 @@ public class ChatActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler_msg);
         //go back to chats view
         back_btn.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ChatActivity.class);
-            startActivity(intent);
+//            Intent intent = new Intent(this, ChatActivity.class);
+//            startActivity(intent);
+//            finish();
+            onBackPressed();
         });
         otherDisplayName.setText(otherUserDisplayName);
 

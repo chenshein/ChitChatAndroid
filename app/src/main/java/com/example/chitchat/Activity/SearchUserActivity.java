@@ -1,15 +1,15 @@
 package com.example.chitchat.Activity;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
-import com.example.chitchat.adapter.UsersListAdapterAddChat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.chitchat.R;
+import com.example.chitchat.adapter.UsersListAdapterAddChat;
 import com.example.chitchat.data.User.UserDao;
 import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
@@ -59,10 +59,31 @@ public class SearchUserActivity extends AppCompatActivity {
         searchButton.setOnClickListener(v -> {
             String searchTerm = searchInput.getText().toString();
             // TODO: check if the user exists
-            if (searchTerm.isEmpty()) {
-                searchInput.setError("Invalid Username");
-            }
+//            if (searchTerm.isEmpty()) {
+//                searchInput.setError("Invalid Username");
+//            }
+            getUserFromDB(searchTerm);
         });
+    }
+
+    private void getUserFromDB(String searchTerm) {
+        Thread thread = new Thread(() -> {
+            UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
+            UserDao userDao = userDatabase.userDao();
+            UserEntity user = userDao.get(searchTerm);
+            runOnUiThread(() -> {
+                if (user == null) {
+                    Thread usersThread = new Thread(() -> {
+                        List<UserEntity> users = performDatabaseQuery();
+                        runOnUiThread(() -> setupSearchRecyclerView(users));
+                    });
+                    usersThread.start();
+                } else {
+                    adapter.setUser(user);
+                }
+            });
+        });
+        thread.start();
     }
 
     private List<UserEntity> performDatabaseQuery() {
