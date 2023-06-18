@@ -52,7 +52,11 @@ public class AllChatsActivity extends AppCompatActivity {
                     getSupportFragmentManager().beginTransaction().replace(R.id.main_frame,chatFragment).commit();
                 }
                 if(item.getItemId() == R.id.menu_profile){
-                    getSupportFragmentManager().beginTransaction().replace(R.id.main_frame,profileFragment).commit();
+                    Bundle profileBundle = new Bundle();
+                    profileBundle.putString("username", extras.getString("username"));
+                    profileFragment.setArguments(profileBundle);
+
+                    getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, profileFragment).commit();
                 }
                 return true;
             }

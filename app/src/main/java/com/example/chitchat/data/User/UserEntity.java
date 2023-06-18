@@ -30,8 +30,7 @@ public class UserEntity {
         this.userList = new ArrayList<>();
     }
 
-    public UserEntity() {
-    }
+    public UserEntity() {}
 
     @NonNull
     public String getUsername() {
@@ -78,7 +77,15 @@ public class UserEntity {
         this.userList.add(user);
     }
 
-    public void removeUserFromUserList(UserEntity user) {
-        this.userList.remove(user);
+//    public void removeUserFromUserList(UserEntity user) {
+//        this.userList.remove(user);
+//    }
+
+
+
+    public void removeFriend(UserEntity friend) {
+        if (userList != null) {
+            userList.remove(friend);
+        }
     }
 }

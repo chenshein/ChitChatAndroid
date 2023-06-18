@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +19,12 @@ import com.example.chitchat.api.UserAPI;
 import com.example.chitchat.data.User.UserDao;
 import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapterAddChat.UserViewHolder> {
     class UserViewHolder extends RecyclerView.ViewHolder {
@@ -53,10 +57,10 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     public void onBindViewHolder(UserViewHolder holder, int position) {
         if (users != null) {
             final UserEntity curr = users.get(position);
-            String s = curr.getUsername();
             holder.username.setText(curr.getUsername());
-            //TODO get picture
-//            holder.user_pic.setImageResource(curr.getProfilePic());
+            // Load and display user image using Picasso
+            String userImageUrl = curr.getProfilePic();
+            Picasso.get().load(userImageUrl).into(holder.user_pic);
         }
         UserEntity user = users.get(position);
 
@@ -66,38 +70,39 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
         });
     }
 
-    @SuppressLint("StaticFieldLeak")
+    private Executor executor = Executors.newSingleThreadExecutor();
     private void onItemClick(View itemView, UserEntity user) {
         Context context = itemView.getContext();
         Intent intent = new Intent(context, ChatActivity.class);
 
-        new AsyncTask<Void, Void, UserEntity>() {
-            @Override
-            protected UserEntity doInBackground(Void... voids) {
-                UserDatabase userDatabase = UserDatabase.getUserDatabase(context);
-                UserDao userDao = userDatabase.userDao();
-                return userDao.get(curr_username);
+        // Pass the other user
+        intent.putExtra("username", user.getUsername());
+        intent.putExtra("profilePic", user.getProfilePic());
+        intent.putExtra("displayName", user.getDisplayName());
+
+        Runnable asyncRunnable = () -> {
+            UserDatabase userDatabase = UserDatabase.getUserDatabase(context);
+            UserDao userDao = userDatabase.userDao();
+            UserEntity currentUser = userDao.get(curr_username);
+
+            if (currentUser != null && !currentUser.getUserList().contains(user)) {
+                // Add the user to the current user's friend list
+                currentUser.addUserToUserList(user);
+
+                // Update the user record in the database with the modified friend list
+                userDao.updateUser(currentUser);
+
+                UserAPI userAPI = new UserAPI();
+                userAPI.addChat(currentUser, user);
+
+                Log.d("UserDatabase", "Friend added: " + user.getUsername());
             }
 
-            @Override
-            protected void onPostExecute(UserEntity currentUser) {
-                // Update the user list in a thread-safe manner
-                if (!currentUser.getUserList().contains(user)) {
-                    currentUser.addUserToUserList(user);
-                    UserAPI userAPI = new UserAPI();
-                    userAPI.addChat(currentUser,user);
-                    // print the list
-                    for (UserEntity user : currentUser.getUserList()) {
-                        System.out.println(user.getUsername());
-                    }
-                }
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        };
 
-                // Continue with the rest of the code
-                passUserAsIntent(intent, user);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
-            }
-        }.execute();
+        executor.execute(asyncRunnable);
     }
 
 
@@ -134,10 +139,4 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
         return users;
     }
 
-
-    public void passUserAsIntent(Intent intent, UserEntity user) {
-        intent.putExtra("username", user.getUsername());
-        intent.putExtra("displayName", user.getDisplayName());
-        intent.putExtra("profilePic", user.getProfilePic());
-    }
 }
