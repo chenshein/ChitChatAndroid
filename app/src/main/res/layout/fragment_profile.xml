@@ -27,15 +27,16 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_marginTop="100dp">
-    <ImageView
-        android:id="@+id/profile_profilePic"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:background="@drawable/background_circle_button"
-        android:backgroundTint="#0D1157"
-        android:layout_marginLeft="100dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_person_bottom_chat" />
+
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_profilePic"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginTop="20dp"
+            android:src="@drawable/default_avatar"
+            android:foregroundGravity="center"
+            android:layout_marginLeft="90dp"/>
 
     <EditText
         android:id="@+id/profile_username"

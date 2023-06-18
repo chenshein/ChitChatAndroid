@@ -3,7 +3,11 @@ package com.example.chitchat.adapter;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,10 +30,12 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapterAddChat.UserViewHolder> {
     class UserViewHolder extends RecyclerView.ViewHolder {
         private final TextView username;
-        private final ImageView user_pic;
+        private final CircleImageView user_pic;
 
         private UserViewHolder(View itemView) {
             super(itemView);
@@ -58,9 +64,10 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
         if (users != null) {
             final UserEntity curr = users.get(position);
             holder.username.setText(curr.getUsername());
-            // Load and display user image using Picasso
             String userImageUrl = curr.getProfilePic();
-            Picasso.get().load(userImageUrl).into(holder.user_pic);
+            byte[] decodedImage = Base64.decode(userImageUrl, Base64.DEFAULT);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length);
+            holder.user_pic.setImageBitmap(bitmap);
         }
         UserEntity user = users.get(position);
 

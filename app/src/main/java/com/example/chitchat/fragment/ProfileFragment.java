@@ -1,11 +1,14 @@
 package com.example.chitchat.fragment;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,13 +24,15 @@ import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
 import com.squareup.picasso.Picasso;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class ProfileFragment extends Fragment {
 
     private EditText usernameEditText;
     private EditText displayNameEditText;
     private ImageButton logout_btn;
 
-    private ImageView profilePic;
+    private CircleImageView profilePic;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -74,8 +79,11 @@ public class ProfileFragment extends Fragment {
             if (curr_user != null) {
                 usernameEditText.setText(curr_user.getUsername());
                 displayNameEditText.setText(curr_user.getDisplayName());
-                String profilePicUrl = curr_user.getProfilePic();
-                Picasso.get().load(profilePicUrl).into(profilePic);
+                String userImageUrl = curr_user.getProfilePic();
+                byte[] decodedImage = Base64.decode(userImageUrl, Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length);
+                profilePic.setImageBitmap(bitmap);
+
             }
         }
     }

@@ -63,9 +63,7 @@ public class ChatActivity extends AppCompatActivity {
 
         //go back to chats view
         back_btn.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AllChatsActivity.class); // Replace PrePreviousActivity with the actual class name of the target activity
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
+           onBackPressed();
         });
 
 

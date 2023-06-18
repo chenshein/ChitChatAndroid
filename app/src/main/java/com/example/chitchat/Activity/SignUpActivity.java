@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.TooltipCompat;
 
 import com.example.chitchat.R;
 import com.example.chitchat.api.UserAPI;
@@ -63,6 +64,10 @@ public class SignUpActivity extends AppCompatActivity {
         confirm_password = findViewById(R.id.signUp_confirm_password);
         displayName = findViewById(R.id.signUp_displayName);
         photo_upload = findViewById(R.id.profileImage);
+//
+//        TooltipCompat.setTooltipText(username, "Enter at least 3 characters, and at most 16.");
+//        TooltipCompat.setTooltipText(password, "Enter at least 8 characters that contains at least one letter and one number.");
+//        TooltipCompat.setTooltipText(displayName, "Enter at least 3 characters, and at most 16.");
 
         photo_upload.setOnClickListener(new View.OnClickListener() {
             @Override
