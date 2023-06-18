@@ -83,5 +83,49 @@ public class UserAPI {
         });
     }
 
+    public void addChat(UserEntity user) {
+        UserPwsName userPwsName = new UserPwsName(user.getUsername(), user.getPassword());
+        Call<String> tokenCall = webServiceAPI.getToken(userPwsName);
+        // extract token from response
+        String token = "";
+        tokenCall.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> tokenCall, Response<String> response) {
+                if (response.isSuccessful()) {
+                    String token = response.body();
+                    Call<Void> call = webServiceAPI.createChat("Bearer " + token, user.getUsername());
+                    call.enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(Call<Void> call, Response<Void> response) {
+                            if(response.isSuccessful()){
+                                System.out.println("Chat created");
+                                // Continue with the subsequent code that depends on the token
+                            } else {
+                                System.out.println("Chat creation failed. Response code: " + response.code());
+                                System.out.println("Token: " + token);
+                                // Handle the failure scenario
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<Void> call, Throwable t) {
+                            System.out.println("Chat creation failed. Error: " + t.getMessage());
+                            // Handle the failure scenario
+                        }
+                    });
+                } else {
+                    String errorBody = response.errorBody().toString();
+                    System.out.println("Response unsuccessful. Error body: " + errorBody);
+                    // Handle the failure scenario
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                System.out.println("Token not created");
+            }
+        });
+        System.out.println("Token: " + token);
+    }
 
 }
