@@ -3,6 +3,7 @@ package com.example.chitchat.api;
 import com.example.chitchat.MyApplication;
 import com.example.chitchat.R;
 import com.example.chitchat.data.Chat.ChatEntity;
+import com.example.chitchat.data.Chat.ChatUser;
 import com.example.chitchat.data.LoginCallback;
 import com.example.chitchat.data.User.UserEntity;
 import com.example.chitchat.data.User.UserPwsName;
@@ -83,17 +84,21 @@ public class UserAPI {
         });
     }
 
-    public void addChat(UserEntity user) {
-        UserPwsName userPwsName = new UserPwsName(user.getUsername(), user.getPassword());
+    public void addChat(UserEntity currentUser, UserEntity user) {
+        System.out.println("Current User: " + currentUser.getUsername() +"\n" + "User: " + user.getUsername());
+        UserPwsName userPwsName = new UserPwsName(currentUser.getUsername(), currentUser.getPassword());
         Call<String> tokenCall = webServiceAPI.getToken(userPwsName);
         // extract token from response
-        String token = "";
         tokenCall.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> tokenCall, Response<String> response) {
                 if (response.isSuccessful()) {
                     String token = response.body();
-                    Call<Void> call = webServiceAPI.createChat("Bearer " + token, user.getUsername());
+                    String bearerToken = "Bearer " + token;
+                    System.out.println("Bearer Token: " + bearerToken + ": " + user.getUsername());
+//                    Token token1 = new Token(bearerToken);
+                    ChatUser chatUser = new ChatUser(user.getUsername());
+                    Call<Void> call = webServiceAPI.createChat(bearerToken, chatUser);
                     call.enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {
@@ -101,7 +106,7 @@ public class UserAPI {
                                 System.out.println("Chat created");
                                 // Continue with the subsequent code that depends on the token
                             } else {
-                                System.out.println("Chat creation failed. Response code: " + response.code());
+                                System.out.println("Chat creation failed. Response code: " + response.code() + " Error: " + response.errorBody().toString() + " Message: " + response.message());
                                 System.out.println("Token: " + token);
                                 // Handle the failure scenario
                             }
@@ -125,7 +130,6 @@ public class UserAPI {
                 System.out.println("Token not created");
             }
         });
-        System.out.println("Token: " + token);
     }
 
 }

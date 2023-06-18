@@ -76,7 +76,7 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
             protected UserEntity doInBackground(Void... voids) {
                 UserDatabase userDatabase = UserDatabase.getUserDatabase(context);
                 UserDao userDao = userDatabase.userDao();
-                return userDao.get(user.getUsername());
+                return userDao.get(curr_username);
             }
 
             @Override
@@ -85,7 +85,7 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
                 if (!currentUser.getUserList().contains(user)) {
                     currentUser.addUserToUserList(user);
                     UserAPI userAPI = new UserAPI();
-                    userAPI.addChat(user);
+                    userAPI.addChat(currentUser,user);
                     // print the list
                     for (UserEntity user : currentUser.getUserList()) {
                         System.out.println(user.getUsername());
