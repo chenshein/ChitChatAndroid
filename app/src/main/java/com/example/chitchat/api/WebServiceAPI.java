@@ -2,6 +2,7 @@ package com.example.chitchat.api;
 
 
 import com.example.chitchat.data.Chat.ChatEntity;
+import com.example.chitchat.data.Chat.ChatUser;
 import com.example.chitchat.data.Msg.MsgEntity;
 import com.example.chitchat.data.User.UserEntity;
 import com.example.chitchat.data.User.UserPwsName;
@@ -21,15 +22,15 @@ public interface WebServiceAPI {
  Call<List<ChatEntity>> getChats();
 
  @POST("Chats")
- Call<Void> createChat(@Header("Authorization") String token, @Body String username);
+ Call<Void> createChat(@Header("Authorization") String token, @Body ChatUser username);
 
- @DELETE("Chat/{id}")
+ @DELETE("Chats/{id}")
  Call<Void> deleteChat(@Path("id") int id);
 
- @POST("Chat/{id}/Messages")
+ @POST("Chats/{id}/Messages")
  Call<Void> createMsg(@Path("id") int id, String msg);
 
- @GET("Chat/{id}/Messages")
+ @GET("Chats/{id}/Messages")
  Call<List<MsgEntity>> getMessages(@Path("id") int id);
 
 
