@@ -1,16 +1,17 @@
 package com.example.chitchat.Activity;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.ImageButton;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.chitchat.R;
 import com.example.chitchat.fragment.ChatFragment;
 import com.example.chitchat.fragment.ProfileFragment;
-import com.example.chitchat.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -20,6 +21,8 @@ public class AllChatsActivity extends AppCompatActivity {
     ChatFragment chatFragment;
     ProfileFragment profileFragment;
     BottomNavigationView bottomNavigationView;
+
+    RecyclerView recyclerView;
 
 
     @Override

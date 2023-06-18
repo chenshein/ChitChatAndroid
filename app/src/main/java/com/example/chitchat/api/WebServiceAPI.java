@@ -12,6 +12,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 
@@ -20,7 +21,7 @@ public interface WebServiceAPI {
  Call<List<ChatEntity>> getChats();
 
  @POST("Chats")
- Call<Void> createChat(@Body ChatEntity newChat);
+ Call<Void> createChat(@Header("Authorization") String token, @Body String username);
 
  @DELETE("Chat/{id}")
  Call<Void> deleteChat(@Path("id") int id);
