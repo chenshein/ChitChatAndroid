@@ -1,7 +1,9 @@
 package com.example.chitchat.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.Activity.ChatActivity;
 import com.example.chitchat.R;
+import com.example.chitchat.api.UserAPI;
+import com.example.chitchat.data.User.UserDao;
+import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
 
 import java.util.ArrayList;
@@ -61,12 +66,38 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
         });
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void onItemClick(View itemView, UserEntity user) {
         Context context = itemView.getContext();
         Intent intent = new Intent(context, ChatActivity.class);
-        passUserAsIntent(intent, user);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+
+        new AsyncTask<Void, Void, UserEntity>() {
+            @Override
+            protected UserEntity doInBackground(Void... voids) {
+                UserDatabase userDatabase = UserDatabase.getUserDatabase(context);
+                UserDao userDao = userDatabase.userDao();
+                return userDao.get(curr_username);
+            }
+
+            @Override
+            protected void onPostExecute(UserEntity currentUser) {
+                // Update the user list in a thread-safe manner
+                if (!currentUser.getUserList().contains(user)) {
+                    currentUser.addUserToUserList(user);
+                    UserAPI userAPI = new UserAPI();
+                    userAPI.addChat(currentUser,user);
+                    // print the list
+                    for (UserEntity user : currentUser.getUserList()) {
+                        System.out.println(user.getUsername());
+                    }
+                }
+
+                // Continue with the rest of the code
+                passUserAsIntent(intent, user);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+            }
+        }.execute();
     }
 
 
