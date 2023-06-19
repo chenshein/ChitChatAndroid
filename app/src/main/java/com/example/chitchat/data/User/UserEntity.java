@@ -74,7 +74,9 @@ public class UserEntity {
     }
 
     public void addUserToUserList(UserEntity user) {
-        this.userList.add(user);
+        if(!this.userList.contains(user)) {
+            this.userList.add(user);
+        }
     }
 
 //    public void removeUserFromUserList(UserEntity user) {

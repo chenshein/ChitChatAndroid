@@ -10,10 +10,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
+import com.example.chitchat.data.User.UserDao;
+import com.example.chitchat.data.User.UserDatabase;
+import com.example.chitchat.data.User.UserEntity;
 import com.example.chitchat.fragment.ChatFragment;
 import com.example.chitchat.fragment.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
+
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class AllChatsActivity extends AppCompatActivity {
 
@@ -22,7 +31,6 @@ public class AllChatsActivity extends AppCompatActivity {
     ProfileFragment profileFragment;
     BottomNavigationView bottomNavigationView;
 
-    RecyclerView recyclerView;
 
 
     @Override
@@ -30,10 +38,10 @@ public class AllChatsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chats_screen);
 
-        //get the curr user for login
+        //get the curr user
         Bundle extras = getIntent().getExtras();
 
-        chatFragment = new ChatFragment();
+        chatFragment = new ChatFragment(extras.getString("username"));
         profileFragment = new ProfileFragment();
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
@@ -63,5 +71,4 @@ public class AllChatsActivity extends AppCompatActivity {
         });
         bottomNavigationView.setSelectedItemId(R.id.menu_chats);
     }
-
 }

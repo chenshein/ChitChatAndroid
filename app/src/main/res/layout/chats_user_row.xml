@@ -6,17 +6,19 @@
     android:layout_margin="10dp"
     android:elevation="2dp">
 
-    <ImageView
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/profile_pic_chats"
         android:layout_width="52dp"
         android:layout_height="52dp"
-        android:src="@drawable/ic_person_bottom_chat"
-        android:tint="@color/grey"
-        android:padding="4dp"
-        android:backgroundTint="#FAFAFA"
+        android:layout_marginTop="0dp"
+        android:layout_marginLeft="5dp"
+        android:src="@drawable/default_avatar"
         android:layout_centerInParent="true"
-        android:id="@+id/profile_image_view"
-        tools:ignore="UseAppTint"
-        android:background="@drawable/rounded_corner" />
+        android:padding="4dp"
+        android:layout_gravity="center"
+        />
+
 
     <LinearLayout
         android:layout_width="0dp"
