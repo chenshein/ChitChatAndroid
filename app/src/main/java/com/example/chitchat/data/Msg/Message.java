@@ -1,23 +1,19 @@
 package com.example.chitchat.data.Msg;
 
-import androidx.annotation.NonNull;
+import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 import com.example.chitchat.data.User.UserEntity;
 
-import java.util.Date;
-
-@Entity(tableName = "messages")
-public class MsgEntity {
+@Entity(tableName = "message")
+public class Message {
     @PrimaryKey
-    @NonNull
-    private int messageId;
-
-    private UserEntity sender;
-    private UserEntity receiver;
-    private String content;
-    private Date timestamp;
+    public int messageId;
+    @Embedded
+    public UserEntity sender;
+    public String content;
+    public String created;
 
     public int getMessageId() {
         return messageId;
@@ -35,14 +31,6 @@ public class MsgEntity {
         this.sender = sender;
     }
 
-    public UserEntity getReceiver() {
-        return receiver;
-    }
-
-    public void setReceiver(UserEntity receiver) {
-        this.receiver = receiver;
-    }
-
     public String getContent() {
         return content;
     }
@@ -51,11 +39,19 @@ public class MsgEntity {
         this.content = content;
     }
 
-    public Date getTimestamp() {
-        return timestamp;
+    public String getCreated() {
+        return created;
     }
 
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
+    public void setCreated(String created) {
+        this.created = created;
+    }
+
+    public Message(int messageId, UserEntity sender, String content, String created) {
+        this.messageId = messageId;
+        this.sender = sender;
+        this.content = content;
+        this.created = created;
+
     }
 }

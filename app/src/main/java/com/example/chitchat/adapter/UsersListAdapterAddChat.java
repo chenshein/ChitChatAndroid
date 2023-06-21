@@ -12,17 +12,23 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.chitchat.Activity.AllChatsActivity;
 import com.example.chitchat.Activity.ChatActivity;
 import com.example.chitchat.R;
 import com.example.chitchat.api.ChatAPI;
 import com.example.chitchat.data.Chat.ChatDao;
 import com.example.chitchat.data.Chat.ChatEntity;
+import com.example.chitchat.data.Chat.ChatItemData;
 import com.example.chitchat.data.Chat.ChatsDatabase;
+import com.example.chitchat.data.ChatCallback;
+import com.example.chitchat.data.Msg.Message;
 import com.example.chitchat.data.User.UserDao;
 import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -42,7 +48,7 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     }
 
     private final LayoutInflater layoutInflater;
-    private List<UserEntity.UserWithPws> users = new ArrayList<>();
+    private List<UserEntity> users = new ArrayList<>();
     private final String curr_username;
 
     public UsersListAdapterAddChat(Context context, String username) {
@@ -59,14 +65,15 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     @Override
     public void onBindViewHolder(UserViewHolder holder, int position) {
         if (users != null) {
-            final UserEntity.UserWithPws curr = users.get(position);
-            holder.username.setText(curr.getUsername());
+            final UserEntity curr = users.get(position);
+            holder.username.setText(curr.getDisplayName()); //set to show displayName
+            //set wanted user's photo
             String userImageUrl = curr.getProfilePic();
             byte[] decodedImage = Base64.decode(userImageUrl, Base64.DEFAULT);
             Bitmap bitmap = BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length);
             holder.user_pic.setImageBitmap(bitmap);
         }
-        UserEntity.UserWithPws user = users.get(position);
+        UserEntity user = users.get(position);
 
         // Navigate to chat page
         holder.itemView.setOnClickListener(v -> {
@@ -76,43 +83,69 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
 
     private Executor executor = Executors.newSingleThreadExecutor();
     //when we click a user that we want to add to our chats
-    private void onItemClick(View itemView, UserEntity.UserWithPws user) {
+    private void onItemClick(View itemView, UserEntity user) {
         Context context = itemView.getContext();
-        Intent intent = new Intent(context, ChatActivity.class);
+        Intent intent = new Intent(context, AllChatsActivity.class);
 
-        // Pass the other user to the chat activity
-        intent.putExtra("username", user.getUsername());
-        intent.putExtra("profilePic", user.getProfilePic());
-        intent.putExtra("displayName", user.getDisplayName());
-        intent.putExtra("current_username", curr_username);
+        // Pass the current user back to see all his chats with the new adding chat
+        intent.putExtra("username", curr_username);
 
         Runnable asyncRunnable = () -> {
             UserDatabase userDatabase = UserDatabase.getUserDatabase(context);
             UserDao userDao = userDatabase.userDao();
-            //get current user Entity
+            //get current user Entity with password in order to use it for the token
             UserEntity.UserWithPws currentUser = userDao.get(curr_username);
-            UserEntity currentUserWithoutPws = new UserEntity(currentUser.getUsername(),currentUser.getDisplayName(),currentUser.getProfilePic());
+
+            // in order to add a new chat
             if (currentUser != null) {
-                ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(context);
-                ChatDao chatDao = chatsDatabase.chatDao();
-                List<ChatEntity> all_chats = chatDao.getAllChats();
-                UserEntity user_to_add = new UserEntity(user.getUsername(),user.getDisplayName(),user.getProfilePic());
-                boolean is_there = check_if_wanted_user_in_list(user_to_add,all_chats);
-                if(!is_there){
-                    //make new chat
-                    ChatEntity chat = new ChatEntity(currentUserWithoutPws,user_to_add);
-                    System.out.println("new "+chat.getChatId());
-                    // make chat in ROOM
-                    chatDao.createChat(chat);
-                    ChatAPI chatAPI = new ChatAPI();
-                    // add to db in server
-                    chatAPI.addChat(currentUser, user_to_add);
-                }
-//                // Add the user to the current user's friend list
-//                currentUser.addUserToUserList(user);
-//
-//                // Update the user record in the database with the modified friend list
-//                userDao.updateUser(currentUser);
+                //TODO in to be from db server to know if the chat exist
+                ChatAPI chatAPI = new ChatAPI();
+
+                //get all chat with the current user
+                chatAPI.get(currentUser, new ChatCallback() {
+                    @Override
+                    public void onSuccessRes(boolean returnVal) {
+
+                    }
+
+
+                    @Override
+                    public void onSuccess(List<ChatEntity> chatEntities) { // the wanted user found, now we add new chat with him
+                        chatAPI.addChat(currentUser, user.getUsername(), new ChatCallback() {
+                            @Override
+                            public void onSuccessRes(boolean returnVal) { // chat added !!
+                                if(returnVal){
+                                    //create the chat in ROOM db
+                                    new Thread(()->{
+                                        List<UserEntity> list = new ArrayList<>();
+                                        list.add((UserEntity) currentUser);
+                                        list.add(user);
+                                        List<Message> messageList = new ArrayList<>();
+                                        ChatEntity new_chat = new ChatEntity(list,messageList,"", new Timestamp(System.currentTimeMillis()));
+                                        ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(context);
+                                        ChatDao chatDao = chatsDatabase.chatDao();
+                                        chatDao.createChat(new_chat);
+                                    }).start();
+                                }
+                            }
+
+                            @Override
+                            public void onSuccess(List<ChatEntity> chatEntities) {}
+
+                            @Override
+                            public void onFailure(String errorMessage) {
+
+                            }
+                        });
+
+
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        System.out.println("chen failed"+errorMessage);
+                    }
+                });
             }
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
@@ -121,6 +154,7 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     }
 
 
+    // add the all users list to the
     public void setUsers(List<String> list) {
         List<String> list_without_curr = new ArrayList<>();
         for (String user : list) {
@@ -137,14 +171,18 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
         notifyDataSetChanged();
     }
 
-    public void setUser(UserEntity.UserWithPws user) {
-        List<UserEntity.UserWithPws> list_without_curr = new ArrayList<>();
+    //show on the search screen the wanted user to add to chats :)
+    public void setUser(UserEntity user) {
+        List<UserEntity> list_without_curr = new ArrayList<>();
         if (!curr_username.equals(user.getUsername())) {
             list_without_curr.add(user);
         }
         users = list_without_curr;
         notifyDataSetChanged();
     }
+
+
+
 
 
     @Override
@@ -155,10 +193,9 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
         return 0;
     }
 
-    public List<UserEntity.UserWithPws> getUsers() {
-        return users;
-    }
-
+//    public List<UserEntity> getUsers() {
+//        return users;
+//    }
 
     private boolean check_if_wanted_user_in_list(UserEntity user, List<ChatEntity> list) {
         for (ChatEntity chat : list) {
@@ -171,4 +208,11 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
         return false; // User not found in any chat's participants list
     }
 
+
+    private void add_chat_local_db(UserEntity currentUser, UserEntity user, Context context){
+
+
+    }
 }
+
+

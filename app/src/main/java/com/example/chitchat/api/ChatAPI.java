@@ -37,6 +37,7 @@ public class ChatAPI {
 
 
 
+    //get user chats
     public void get(UserEntity.UserWithPws currentUser, ChatCallback callback) {
         UserPwsName userPwsName = new UserPwsName(currentUser.getUsername(), currentUser.getPassword());
         Call<String> tokenCall = chatServiceAPI.getToken(userPwsName);
@@ -86,67 +87,56 @@ public class ChatAPI {
     }
 
 
-//    public void get() {
-//        Call<List<ChatEntity>> call = chatServiceAPI.getChats();
-//        call.enqueue(new Callback<List<ChatEntity>>() {
-//            @Override
-//            public void onResponse(Call<List<ChatEntity>> call, Response<List<ChatEntity>> response) {
-//                List<ChatEntity> chats = response.body();
-//                response.body();
-//            }
-//
-//            @Override
-//            public void onFailure(Call<List<ChatEntity>> call, Throwable t) {
-//            }
-//        });
-  //  }
-    //add chat with current user
-    public void addChat(UserEntity.UserWithPws currentUser, UserEntity user) {
+    //add chat
+    public void addChat(UserEntity.UserWithPws currentUser, String usernameToAdd, ChatCallback callback) {
         UserPwsName userPwsName = new UserPwsName(currentUser.getUsername(), currentUser.getPassword());
         Call<String> tokenCall = chatServiceAPI.getToken(userPwsName);
-        // extract token from response
+
         tokenCall.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> tokenCall, Response<String> response) {
                 if (response.isSuccessful()) {
                     String token = response.body();
                     String bearerToken = "Bearer " + token;
-                    System.out.println("Bearer Token: " + bearerToken + ": " + user.getUsername());
-//                    Token token1 = new Token(bearerToken);
-                    ChatUser chatUser = new ChatUser(user.getUsername());
+                    ChatUser chatUser = new ChatUser(usernameToAdd);
+
                     Call<Void> call = chatServiceAPI.createChat(bearerToken, chatUser);
                     call.enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {
-                            if(response.isSuccessful()){
+                            if (response.isSuccessful()) {
                                 System.out.println("Chat created");
-                                // Continue with the subsequent code that depends on the token
+                                callback.onSuccessRes(true);
                             } else {
-                                System.out.println("Chat creation failed. Response code: " + response.code() + " Error: " + response.errorBody().toString() + " Message: " + response.message());
-                                System.out.println("Token: " + token);
-                                // Handle the failure scenario
+                                String error = "Chat creation failed. Response code: " + response.code() + " Error: " + response.errorBody().toString() + " Message: " + response.message();
+                                System.out.println(error);
+                                callback.onFailure(error);
                             }
                         }
 
                         @Override
                         public void onFailure(Call<Void> call, Throwable t) {
-                            System.out.println("Chat creation failed. Error: " + t.getMessage());
-                            // Handle the failure scenario
+                            String error = "Chat creation failed. Error: " + t.getMessage();
+                            System.out.println(error);
+                            callback.onFailure(error);
                         }
                     });
                 } else {
                     String errorBody = response.errorBody().toString();
                     System.out.println("Response unsuccessful. Error body: " + errorBody);
-                    // Handle the failure scenario
+                    callback.onFailure(errorBody);
                 }
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
                 System.out.println("Token not created");
+                callback.onFailure("Token not created");
             }
         });
     }
+
+
 
     public void getChatById(int chat_id){}
 

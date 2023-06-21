@@ -3,6 +3,7 @@ package com.example.chitchat.Activity;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -10,6 +11,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
 import com.example.chitchat.adapter.UsersListAdapterAddChat;
+import com.example.chitchat.api.UserAPI;
+import com.example.chitchat.data.GetUserCallback;
+import com.example.chitchat.data.LoginCallback;
 import com.example.chitchat.data.User.UserDao;
 import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
@@ -47,54 +51,107 @@ public class SearchUserActivity extends AppCompatActivity {
             onBackPressed();
         });
 
-        adapter = new UsersListAdapterAddChat(this,extras.getString("username"));
+        adapter = new UsersListAdapterAddChat(this, extras.getString("username"));
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         // Perform the database operation on a background thread
-        Thread thread = new Thread(() -> {
-            List<String> users = performDatabaseQuery();
-            runOnUiThread(() -> setupSearchRecyclerView(users));
-        });
-        thread.start();
+//        Thread thread = new Thread(() -> {
+//            List<String> users = performDatabaseQuery();
+//            runOnUiThread(() -> setupSearchRecyclerView(users));
+//        });
+//        thread.start();
 
         searchButton.setOnClickListener(v -> {
-            String searchTerm = searchInput.getText().toString();
-            // TODO: check if the user exists
-//            if (searchTerm.isEmpty()) {
-//                searchInput.setError("Invalid Username");
+            String searchUser = searchInput.getText().toString();
+            String currentUser = extras.getString("username");
+
+            if (searchUser.equals(currentUser)) {
+                Toast.makeText(SearchUserActivity.this, "You can't add yourself :)", Toast.LENGTH_SHORT).show();
+                return; // Exit the method to prevent further execution
+            }
+
+            new Thread(() -> {
+                UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
+                UserDao userDao = userDatabase.userDao();
+                UserEntity.UserWithPws searchUserEntity = userDao.get(searchUser);
+                getUserFromAPI(searchUserEntity);
+            }).start();
+        });
+    }
+
+
+//        searchButton.setOnClickListener(v -> {
+//            String searchUser = searchInput.getText().toString();
+//            //if the user that we want to add is equals to the current user name - not possible
+//            if(searchUser.equals(extras.getString("username"))){
+//                Toast.makeText(SearchUserActivity.this,"You can't add yourself :)",Toast.LENGTH_SHORT).show();
 //            }
-            getUserFromDB(searchTerm);
+//            new Thread(()->{
+//                UserDatabase userDatabase= UserDatabase.getUserDatabase(this);
+//                UserDao userDao = userDatabase.userDao();
+//                UserEntity.UserWithPws searchUserEntity = userDao.get(searchUser);
+//                getUserFromAPI(searchUserEntity);
+//            }).start();
+//        });
+//    }
+
+    private void getUserFromAPI(UserEntity.UserWithPws searchUser){
+        UserAPI api = new UserAPI();
+        api.getUser(searchUser, new GetUserCallback() {
+            @Override
+            public void onGetSuccess(UserEntity user) {
+                adapter.setUser(user);
+
+            }
+
+            @Override
+            public void onGetFailure(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(SearchUserActivity.this, "User not found", Toast.LENGTH_SHORT).show();
+                });
+
+
+            }
         });
+
     }
 
-    private void getUserFromDB(String searchTerm) {
-        Thread thread = new Thread(() -> {
-            UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
-            UserDao userDao = userDatabase.userDao();
-            UserEntity.UserWithPws user = userDao.get(searchTerm);
-            runOnUiThread(() -> {
-                if (user == null) {
-                    Thread usersThread = new Thread(() -> {
-                        List<String> users = performDatabaseQuery();
-                        runOnUiThread(() -> setupSearchRecyclerView(users));
-                    });
-                    usersThread.start();
-                } else {
-                    adapter.setUser(user);
-                }
-            });
-        });
-        thread.start();
-    }
 
-    private List<String> performDatabaseQuery() {
-        UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
-        UserDao userDao = userDatabase.userDao();
-//        return userDao.getAllUsers();
-        return userDao.getAllUsersName();
-    }
 
-    private void setupSearchRecyclerView(List<String> userList) {
-        adapter.setUsers(userList);
-    }
+//    private void getUserFromDB(String searchUser) {
+//        Thread thread = new Thread(() -> {
+//            UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
+//            UserDao userDao = userDatabase.userDao();
+//            UserEntity.UserWithPws user = userDao.get(searchUser);
+//            runOnUiThread(() -> {
+//                if (user == null) {
+//                    Thread usersThread = new Thread(() -> {
+//                        List<String> users = performDatabaseQuery();
+//                        runOnUiThread(() -> setupSearchRecyclerView(users));
+//                    });
+//                    usersThread.start();
+//                } else {
+//                    adapter.setUser(user);
+//                }
+//            });
+//        });
+//        thread.start();
+//    }
+//
+//    private List<String> performDatabaseQuery() {
+//        UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
+//        UserDao userDao = userDatabase.userDao();
+////        return userDao.getAllUsers();
+//        return userDao.getAllUsersName();
+//    }
+//
+//    private void setupSearchRecyclerView(List<String> userList) {
+//        adapter.setUsers(userList);
+//    }
+
+
+
 }
+
+
+

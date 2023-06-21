@@ -13,6 +13,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
+import com.example.chitchat.api.ChatAPI;
+import com.example.chitchat.data.Chat.ChatDao;
+import com.example.chitchat.data.Chat.ChatEntity;
+import com.example.chitchat.data.Chat.ChatsDatabase;
+
+import com.example.chitchat.data.User.UserEntity;
+
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -50,6 +58,7 @@ public class ChatActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler_msg);
         otherImg = findViewById(R.id.other_img);
 
+        //set the display username to be shown
         otherDisplayName.setText(otherUserDisplayName);
 
 
@@ -70,7 +79,17 @@ public class ChatActivity extends AppCompatActivity {
            finish();
         });
 
+        sent_msg_btn.setOnClickListener(v -> {
+            String msg = input_msg.getText().toString().trim();
+            if(msg.isEmpty()){
+                return;
+            }
+            sendMessageToUser(msg);
+        });
 
+    }
+
+    void sendMessageToUser(String message){
 
     }
 
@@ -78,6 +97,6 @@ public class ChatActivity extends AppCompatActivity {
         byte[] decodedBytes = android.util.Base64.decode(base64String, android.util.Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
     }
-    public void getOnCreateChatroomModel() {}
+    public static void getOnCreateChatroomModel() {}
 
 }

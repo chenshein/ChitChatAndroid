@@ -1,18 +1,24 @@
 package com.example.chitchat.Activity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -96,6 +102,7 @@ public class SignUpActivity extends AppCompatActivity {
                 String Confirm_Password = confirm_password.getText().toString();
                 String DisplayName = displayName.getText().toString();
 
+
                 if (TextUtils.isEmpty(Username) || TextUtils.isEmpty(Password) ||
                         TextUtils.isEmpty(Confirm_Password) || TextUtils.isEmpty(DisplayName)) {
                     Toast.makeText(SignUpActivity.this, "Please enter valid information", Toast.LENGTH_SHORT).show();
@@ -106,7 +113,7 @@ public class SignUpActivity extends AppCompatActivity {
                 } else if (!DisplayName.matches(displayPattern)) {
                     displayName.setError("Type valid username");
                 } else if (!Password.equals(Confirm_Password)) {
-                    password.setError("The password doesn't match");
+                    confirm_password.setError("The password doesn't match");
                 } else {
                     new Thread(new Runnable() {
                         @Override
@@ -146,6 +153,8 @@ public class SignUpActivity extends AppCompatActivity {
             }
         });
     }
+
+
 
     private boolean check_if_user_exist(String username) {
         UserEntity.UserWithPws userEntity = userDao.get(username);
@@ -206,4 +215,6 @@ public class SignUpActivity extends AppCompatActivity {
 
         return stream.toByteArray();
     }
+
+
 }

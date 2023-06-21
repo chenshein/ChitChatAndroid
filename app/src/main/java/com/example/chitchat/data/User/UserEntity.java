@@ -10,20 +10,21 @@ import com.example.chitchat.Converter.ListConverter;
 @Entity(tableName = "user")
 @TypeConverters(ListConverter.class)
 public class UserEntity {
-    @PrimaryKey
     @NonNull
+    @PrimaryKey
     private String username;
     private String displayName;
     private String profilePic;
+    private String status;
+    private String lastMessage;
 
-
-    public UserEntity(String username, String displayName, String profilePic) {
+    public UserEntity(@NonNull String username, String displayName, String profilePic) {
         this.username = username;
         this.displayName = displayName;
         this.profilePic = profilePic;
+        this.status = "offline";
+        this.lastMessage = "";
     }
-
-    public UserEntity() {}
 
     @NonNull
     public String getUsername() {
@@ -33,7 +34,6 @@ public class UserEntity {
     public void setUsername(@NonNull String username) {
         this.username = username;
     }
-
 
     public String getDisplayName() {
         return displayName;
@@ -51,6 +51,22 @@ public class UserEntity {
         this.profilePic = profilePic;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getLastMessage() {
+        return lastMessage;
+    }
+
+    public void setLastMessage(String lastMessage) {
+        this.lastMessage = lastMessage;
+    }
+
 
     @Entity(tableName = "userWithPws")
     public static class UserWithPws extends UserEntity{
@@ -65,6 +81,5 @@ public class UserEntity {
 
 
     }
-
 
 }

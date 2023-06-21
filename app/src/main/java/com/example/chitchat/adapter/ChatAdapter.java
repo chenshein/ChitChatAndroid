@@ -1,4 +1,4 @@
-package com.example.chitchat.adapter;
+package com.example.chitchat.adapter;//package com.example.chitchat.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -45,12 +45,11 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         holder.displayName.setText(chatItem.getDisplayName());
         holder.lastMessage.setText(chatItem.getLastMessage());
         holder.created.setText(chatItem.getCreated());
-//        String userImageUrl = chatItem.getProfilePic();
-//        byte[] decodedImage = Base64.decode(userImageUrl, Base64.DEFAULT);
-//        Bitmap bitmap = BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length);
-//        profilePic.setImageBitmap(bitmap);
 
-        //todo pic
+        String userImageUrl = chatItem.getProfilePic();
+        byte[] decodedImage = Base64.decode(userImageUrl, Base64.DEFAULT);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length);
+        holder.profilePic.setImageBitmap(bitmap);
     }
 
     @Override
@@ -71,10 +70,10 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         }
     }
 
-    //todo change
     public void updateChatItems(List<ChatItemData> chatItems) {
         this.chatItems = chatItems;
         notifyDataSetChanged();
     }
-
 }
+
+

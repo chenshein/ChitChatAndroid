@@ -72,15 +72,4 @@ public class AllChatsActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        refreshUserList();
-    }
-
-    public void refreshUserList() {
-        if (chatFragment != null) {
-            chatFragment.refreshUserList();
-        }
-    }
 }

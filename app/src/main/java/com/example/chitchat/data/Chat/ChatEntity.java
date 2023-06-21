@@ -7,31 +7,42 @@ import androidx.room.TypeConverters;
 
 import com.example.chitchat.Converter.ListConverter;
 import com.example.chitchat.Converter.MsgConverter;
-import com.example.chitchat.data.Msg.MsgEntity;
+import com.example.chitchat.Converter.TimestampConverter;
+import com.example.chitchat.data.Msg.Message;
+import com.example.chitchat.data.Msg.Message;
 import com.example.chitchat.data.User.UserEntity;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 @Entity(tableName = "chat")
-@TypeConverters({ListConverter.class, MsgConverter.class})
+@TypeConverters({ListConverter.class, MsgConverter.class, TimestampConverter.class})
 
 public class ChatEntity {
     @PrimaryKey (autoGenerate = true)
     private int chatId;
     private List<UserEntity> users;
-    private List<MsgEntity> messages;
+    private List<Message> messages;
     private String lastMessage;
+    Timestamp lastMsgTimestamp;
 
-
-
-    public ChatEntity() {
-        // Empty constructor required by Room
+    public ChatEntity(List<UserEntity> users, List<Message> messages, String lastMessage, Timestamp lastMsgTimestamp) {
+        this.users = users;
+        this.messages = messages;
+        this.lastMessage = lastMessage;
+        this.lastMsgTimestamp = lastMsgTimestamp;
     }
-    public ChatEntity(UserEntity user1, UserEntity user2){
-        this.users = new ArrayList<>();
-        this.users.add(user1);
-        this.users.add(user2);
+
+
+    public Timestamp getLastMsgTimestamp() {
+        return lastMsgTimestamp;
     }
+
+    public void setLastMsgTimestamp(Timestamp lastMsgTimestamp) {
+        this.lastMsgTimestamp = lastMsgTimestamp;
+    }
+
+
 
     public int getChatId() {
         return chatId;
@@ -49,11 +60,11 @@ public class ChatEntity {
         this.users = users;
     }
 
-    public List<MsgEntity> getMessages() {
+    public List<Message> getMessages() {
         return messages;
     }
 
-    public void setMessages(List<MsgEntity> messages) {
+    public void setMessages(List<Message> messages) {
         this.messages = messages;
     }
 

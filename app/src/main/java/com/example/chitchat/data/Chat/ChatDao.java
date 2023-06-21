@@ -1,5 +1,6 @@
 package com.example.chitchat.data.Chat;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -17,10 +18,7 @@ public interface ChatDao {
     List<ChatEntity> getAllChats();
     @Query("SELECT * FROM chat WHERE chatId = :chatId")
     ChatEntity getChatById(int chatId);
-    @Query("SELECT * FROM chat WHERE chatId IN " +
-            "(SELECT chatId FROM chat WHERE EXISTS " +
-            "(SELECT * FROM user WHERE username = :username))")
-    List<ChatEntity> getChatsForUser(String username);
+
     @Insert
     void createChat(ChatEntity chat);
     @Update

@@ -7,7 +7,9 @@ import com.example.chitchat.data.User.UserPwsName;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 public interface UserServiceAPI {
 
@@ -15,8 +17,7 @@ public interface UserServiceAPI {
  Call<String> getToken(@Body UserPwsName user);
 
  @GET("Users/{username}")
-// @Headers("authorization": "Bearer " + jason)
- Call<UserEntity> getUserWithoutPass();
+ Call<UserEntity> getUserWithoutPass(@Header("Authorization") String token,@Path("username") String username);
 
  @POST("Users")
  Call<Void> createUser(@Body UserEntity.UserWithPws newUser);

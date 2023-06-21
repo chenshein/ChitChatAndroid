@@ -1,4 +1,4 @@
-    package com.example.chitchat.fragment;
+package com.example.chitchat.fragment;//    package com.example.chitchat.fragment;
 
     import android.os.Bundle;
     import android.view.LayoutInflater;
@@ -81,7 +81,24 @@
             new Thread(()->{
             ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(getContext());
             ChatDao chatDao = chatsDatabase.chatDao();
-            chats = chatDao.getChatsForUser(this.currentUser_str);
+            //all chats in ROOM db
+            chats = chatDao.getAllChats();
+            List<ChatEntity> user_chats = new ArrayList<>();
+
+            //in order to get all user's chats
+                for (ChatEntity chat : chats) {
+                    List<UserEntity> users = chat.getUsers();
+                    for (UserEntity user: users){
+                        if(user.getUsername().equals(currentUser_str)){
+                            user_chats.add(chat);
+                        }
+                    }
+                }
+                chats = user_chats;
+
+
+
+
             // Call setupRecyclerView() on the main thread
             requireActivity().runOnUiThread(this::setupRecyclerView);
             }).start();
@@ -94,8 +111,11 @@
 
             // Create and set the adapter
             adapter = new ChatAdapter(getContext(), chatItems);
-            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.setAdapter(adapter);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            adapter.updateChatItems(chatItems);
+
+
         }
 
         private List<ChatItemData> createChatItems(List<ChatEntity> all_chats) {
@@ -105,26 +125,13 @@
                 for (UserEntity user : chat.getUsers()) {
                     if (!user.getUsername().equals(currentUser_str)) {
                         UserEntity otherUser = user;
-    //                    Message lastMessage = appDatabase.getMessageDao().getLatestMessageForChat(chat.getChatId());
-    //
-    //                    String content = "";
-    //                    String created = "";
-    //
-    //                    if (lastMessage != null) {
-    //                        content = lastMessage.getContent();
-    //                        created = lastMessage.getCreated();
-    //                    }
-
                         chatItems.add(
                                 new ChatItemData(
                                         otherUser.getProfilePic(),
                                         otherUser.getDisplayName(),
                                         "", ""));
-
-
                     }
                 }
-                return chatItems;
             }
             return chatItems;
         }
@@ -143,4 +150,11 @@
                 });
             }).start();
         }
+
+
     }
+
+
+
+
+

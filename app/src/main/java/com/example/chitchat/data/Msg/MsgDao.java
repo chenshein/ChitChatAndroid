@@ -6,9 +6,9 @@ import androidx.room.Query;
 
 @Dao
 public interface MsgDao {
-    @Query("SELECT * FROM messages WHERE messageId = :messageId")
-    MsgEntity getMessageById(int messageId);
+    @Query("SELECT * FROM message WHERE messageId = :messageId")
+    Message getMessageById(int messageId);
     @Insert
-    void createMessage(MsgEntity message);
+    void createMessage(Message message);
 
 }

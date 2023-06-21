@@ -4,6 +4,8 @@ import com.example.chitchat.MyApplication;
 import com.example.chitchat.R;
 import com.example.chitchat.data.Chat.ChatEntity;
 import com.example.chitchat.data.Chat.ChatUser;
+import com.example.chitchat.data.ChatCallback;
+import com.example.chitchat.data.GetUserCallback;
 import com.example.chitchat.data.LoginCallback;
 import com.example.chitchat.data.User.UserEntity;
 import com.example.chitchat.data.User.UserPwsName;
@@ -29,6 +31,50 @@ public class UserAPI {
         webServiceAPI = retrofit.create(UserServiceAPI.class);
     }
 
+    public void getUser(UserEntity.UserWithPws user, GetUserCallback callback) {
+        if (user==null){
+            callback.onGetFailure("No such user");
+            return;
+        }
+        UserPwsName userPwsName = new UserPwsName(user.getUsername(),user.getPassword());
+
+        Call<String> tokenCall = webServiceAPI.getToken(userPwsName);
+        tokenCall.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    String token = response.body();
+                    // Make the getUserWithoutPass() API call using the obtained token
+                    String authorizationHeader = "Bearer " + token;
+                    Call<UserEntity> getUserCall = webServiceAPI.getUserWithoutPass(authorizationHeader, user.getUsername());
+                    getUserCall.enqueue(new Callback<UserEntity>() {
+                        @Override
+                        public void onResponse(Call<UserEntity> call, Response<UserEntity> response) {
+                            if (response.isSuccessful()) {
+                                UserEntity user = response.body();
+                                callback.onGetSuccess(user);
+                            } else {
+                                callback.onGetFailure("User does not exist");
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<UserEntity> call, Throwable t) {
+                            System.out.println("ON FAILURE IN GET USER");
+                            callback.onGetFailure("Failed to get user");
+                        }
+                    });
+                } else {
+                    callback.onGetFailure("Failed to obtain token");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                callback.onGetFailure("Token request failed");
+            }
+        });
+    }
 
 
     public void registerUser(UserEntity.UserWithPws user) {
