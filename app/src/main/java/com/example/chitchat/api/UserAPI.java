@@ -18,7 +18,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class UserAPI {
     Retrofit retrofit;
-    WebServiceAPI webServiceAPI;
+    UserServiceAPI webServiceAPI;
 
     public UserAPI() {
 
@@ -26,25 +26,12 @@ public class UserAPI {
                 .baseUrl(MyApplication.context.getString(R.string.BaseUrl))
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        webServiceAPI = retrofit.create(WebServiceAPI.class);
+        webServiceAPI = retrofit.create(UserServiceAPI.class);
     }
 
-    public void get() {
-        Call<List<ChatEntity>> call = webServiceAPI.getChats();
-        call.enqueue(new Callback<List<ChatEntity>>() {
-            @Override
-            public void onResponse(Call<List<ChatEntity>> call, Response<List<ChatEntity>> response) {
-                List<ChatEntity> chats = response.body();
-                response.body();
-            }
 
-            @Override
-            public void onFailure(Call<List<ChatEntity>> call, Throwable t) {
-            }
-        });
-    }
 
-    public void registerUser(UserEntity user) {
+    public void registerUser(UserEntity.UserWithPws user) {
         Call<Void> call = webServiceAPI.createUser(user);
         call.enqueue(new Callback<Void>() {
             @Override
@@ -84,52 +71,6 @@ public class UserAPI {
         });
     }
 
-    public void addChat(UserEntity currentUser, UserEntity user) {
-        System.out.println("Current User: " + currentUser.getUsername() +"\n" + "User: " + user.getUsername());
-        UserPwsName userPwsName = new UserPwsName(currentUser.getUsername(), currentUser.getPassword());
-        Call<String> tokenCall = webServiceAPI.getToken(userPwsName);
-        // extract token from response
-        tokenCall.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> tokenCall, Response<String> response) {
-                if (response.isSuccessful()) {
-                    String token = response.body();
-                    String bearerToken = "Bearer " + token;
-                    System.out.println("Bearer Token: " + bearerToken + ": " + user.getUsername());
-//                    Token token1 = new Token(bearerToken);
-                    ChatUser chatUser = new ChatUser(user.getUsername());
-                    Call<Void> call = webServiceAPI.createChat(bearerToken, chatUser);
-                    call.enqueue(new Callback<Void>() {
-                        @Override
-                        public void onResponse(Call<Void> call, Response<Void> response) {
-                            if(response.isSuccessful()){
-                                System.out.println("Chat created");
-                                // Continue with the subsequent code that depends on the token
-                            } else {
-                                System.out.println("Chat creation failed. Response code: " + response.code() + " Error: " + response.errorBody().toString() + " Message: " + response.message());
-                                System.out.println("Token: " + token);
-                                // Handle the failure scenario
-                            }
-                        }
 
-                        @Override
-                        public void onFailure(Call<Void> call, Throwable t) {
-                            System.out.println("Chat creation failed. Error: " + t.getMessage());
-                            // Handle the failure scenario
-                        }
-                    });
-                } else {
-                    String errorBody = response.errorBody().toString();
-                    System.out.println("Response unsuccessful. Error body: " + errorBody);
-                    // Handle the failure scenario
-                }
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                System.out.println("Token not created");
-            }
-        });
-    }
 
 }

@@ -64,7 +64,9 @@ public class ChatActivity extends AppCompatActivity {
         //go back to chats view
         back_btn.setOnClickListener(v -> {
            Intent intent =  new Intent(this,AllChatsActivity.class);
-           startActivity(intent);
+            intent.putExtra("username",extras.getString("current_username"));
+
+            startActivity(intent);
            finish();
         });
 

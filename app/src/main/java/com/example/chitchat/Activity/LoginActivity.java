@@ -24,10 +24,7 @@ public class LoginActivity extends AppCompatActivity {
     String usernamePattern = "^[a-zA-Z0-9_-]{3,16}$";
     String passwordPattern = "^(?=.*\\d)(?=.*[a-zA-Z])[a-zA-Z0-9!@#$%^&*()_+]{8,}$";
 
-    //TODO write this function
-    public void signInWithUsernameAndPassword(String username, String password) {
 
-    }
 
     @Override
     protected void onCreate(Bundle saveInstanceState) {
@@ -71,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         //check if the user exists in the local database
-                        final UserEntity userEntity = userDao.login(Username, Password);
+                        final UserEntity.UserWithPws userEntity = userDao.login(Username, Password);
                         LoginActivity.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {

@@ -10,6 +10,13 @@ public class ChatItemData {
     private String lastMessage;
     private String created;
 
+    public ChatItemData(String profilePic,String displayName,String lastMessage,String created){
+        this.created=created;
+        this.lastMessage = lastMessage;
+        this.displayName = displayName;
+        this.profilePic = profilePic;
+    }
+
     public String getProfilePic() {
         return profilePic;
     }

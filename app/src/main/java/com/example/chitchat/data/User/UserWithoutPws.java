@@ -7,9 +7,8 @@ import androidx.room.TypeConverters;
 
 import com.example.chitchat.Converter.ListConverter;
 
-@Entity(tableName = "user")
-@TypeConverters(ListConverter.class)
-public class UserEntity {
+public class UserWithoutPws {
+
     @PrimaryKey
     @NonNull
     private String username;
@@ -17,13 +16,13 @@ public class UserEntity {
     private String profilePic;
 
 
-    public UserEntity(String username, String displayName, String profilePic) {
+    public UserWithoutPws(String username, String displayName, String profilePic) {
         this.username = username;
         this.displayName = displayName;
         this.profilePic = profilePic;
     }
 
-    public UserEntity() {}
+    public UserWithoutPws() {}
 
     @NonNull
     public String getUsername() {
@@ -33,7 +32,6 @@ public class UserEntity {
     public void setUsername(@NonNull String username) {
         this.username = username;
     }
-
 
     public String getDisplayName() {
         return displayName;
@@ -51,20 +49,6 @@ public class UserEntity {
         this.profilePic = profilePic;
     }
 
-
-    @Entity(tableName = "userWithPws")
-    public static class UserWithPws extends UserEntity{
-        String password;
-        public UserWithPws(String username, String password, String displayName, String profilePic){
-            super(username, displayName, profilePic);
-            this.password = password;
-        }
-
-        public String getPassword() {return this.password;}
-        public void setPassword(String password) {this.password = password;}
-
-
-    }
 
 
 }

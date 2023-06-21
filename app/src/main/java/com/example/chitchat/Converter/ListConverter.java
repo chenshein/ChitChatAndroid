@@ -1,4 +1,4 @@
-package com.example.chitchat.adapter;
+package com.example.chitchat.Converter;
 
 import androidx.room.TypeConverter;
 

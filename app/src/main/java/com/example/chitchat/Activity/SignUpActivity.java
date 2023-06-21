@@ -124,7 +124,7 @@ public class SignUpActivity extends AppCompatActivity {
                                 if(base64Pic.equals("")){
                                     base64Pic = getDefaultAvatarBase64(); // Set base64Pic to the default avatar
                                 }
-                                UserEntity new_user = new UserEntity(Username, Password, DisplayName,base64Pic);
+                                UserEntity.UserWithPws new_user = new UserEntity.UserWithPws(Username, Password, DisplayName,base64Pic);
                                 UserAPI userAPI = new UserAPI();
                                 userAPI.registerUser(new_user); //add to database
                                 userDao.insert(new_user); // add to local database
@@ -148,7 +148,7 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private boolean check_if_user_exist(String username) {
-        UserEntity userEntity = userDao.get(username);
+        UserEntity.UserWithPws userEntity = userDao.get(username);
         return userEntity != null;
     }
 

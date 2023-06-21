@@ -50,7 +50,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 //        Bitmap bitmap = BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length);
 //        profilePic.setImageBitmap(bitmap);
 
-     //todo pic
+        //todo pic
     }
 
     @Override
@@ -70,4 +70,11 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             created = itemView.findViewById(R.id.time_text);
         }
     }
+
+    //todo change
+    public void updateChatItems(List<ChatItemData> chatItems) {
+        this.chatItems = chatItems;
+        notifyDataSetChanged();
+    }
+
 }

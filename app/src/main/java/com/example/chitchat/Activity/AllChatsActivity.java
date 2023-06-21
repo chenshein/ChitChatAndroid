@@ -32,7 +32,6 @@ public class AllChatsActivity extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,19 +46,19 @@ public class AllChatsActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         addButton = findViewById(R.id.ic_add_user);
 
-        addButton.setOnClickListener((v) ->{
+        addButton.setOnClickListener((v) -> {
             Intent intent = new Intent(this, SearchUserActivity.class);
-            intent.putExtra("username",extras.getString("username")); //pass the username
+            intent.putExtra("username", extras.getString("username")); //pass the username
             startActivity(intent);
         });
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                if(item.getItemId() == R.id.menu_chats){
-                    getSupportFragmentManager().beginTransaction().replace(R.id.main_frame,chatFragment).commit();
+                if (item.getItemId() == R.id.menu_chats) {
+                    getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, chatFragment).commit();
                 }
-                if(item.getItemId() == R.id.menu_profile){
+                if (item.getItemId() == R.id.menu_profile) {
                     Bundle profileBundle = new Bundle();
                     profileBundle.putString("username", extras.getString("username"));
                     profileFragment.setArguments(profileBundle);
@@ -70,5 +69,18 @@ public class AllChatsActivity extends AppCompatActivity {
             }
         });
         bottomNavigationView.setSelectedItemId(R.id.menu_chats);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshUserList();
+    }
+
+    public void refreshUserList() {
+        if (chatFragment != null) {
+            chatFragment.refreshUserList();
+        }
     }
 }

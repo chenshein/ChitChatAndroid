@@ -32,6 +32,7 @@ public class SearchUserActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_user);
 
+        //get current user
         Bundle extras = getIntent().getExtras();
 
         searchInput = findViewById(R.id.search_username_input);
@@ -41,6 +42,7 @@ public class SearchUserActivity extends AppCompatActivity {
 
         searchInput.requestFocus();
 
+        //go back to all chats
         backButton.setOnClickListener(v -> {
             onBackPressed();
         });
@@ -50,11 +52,10 @@ public class SearchUserActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         // Perform the database operation on a background thread
         Thread thread = new Thread(() -> {
-            List<UserEntity> users = performDatabaseQuery();
+            List<String> users = performDatabaseQuery();
             runOnUiThread(() -> setupSearchRecyclerView(users));
         });
         thread.start();
-
 
         searchButton.setOnClickListener(v -> {
             String searchTerm = searchInput.getText().toString();
@@ -70,11 +71,11 @@ public class SearchUserActivity extends AppCompatActivity {
         Thread thread = new Thread(() -> {
             UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
             UserDao userDao = userDatabase.userDao();
-            UserEntity user = userDao.get(searchTerm);
+            UserEntity.UserWithPws user = userDao.get(searchTerm);
             runOnUiThread(() -> {
                 if (user == null) {
                     Thread usersThread = new Thread(() -> {
-                        List<UserEntity> users = performDatabaseQuery();
+                        List<String> users = performDatabaseQuery();
                         runOnUiThread(() -> setupSearchRecyclerView(users));
                     });
                     usersThread.start();
@@ -86,13 +87,14 @@ public class SearchUserActivity extends AppCompatActivity {
         thread.start();
     }
 
-    private List<UserEntity> performDatabaseQuery() {
+    private List<String> performDatabaseQuery() {
         UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
         UserDao userDao = userDatabase.userDao();
-        return userDao.getAllUsers();
+//        return userDao.getAllUsers();
+        return userDao.getAllUsersName();
     }
 
-    private void setupSearchRecyclerView(List<UserEntity> userList) {
+    private void setupSearchRecyclerView(List<String> userList) {
         adapter.setUsers(userList);
     }
 }

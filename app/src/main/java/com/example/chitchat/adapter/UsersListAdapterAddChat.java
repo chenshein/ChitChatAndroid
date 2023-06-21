@@ -1,29 +1,26 @@
 package com.example.chitchat.adapter;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.Activity.ChatActivity;
 import com.example.chitchat.R;
-import com.example.chitchat.api.UserAPI;
+import com.example.chitchat.api.ChatAPI;
+import com.example.chitchat.data.Chat.ChatDao;
+import com.example.chitchat.data.Chat.ChatEntity;
+import com.example.chitchat.data.Chat.ChatsDatabase;
 import com.example.chitchat.data.User.UserDao;
 import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +42,7 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     }
 
     private final LayoutInflater layoutInflater;
-    private List<UserEntity> users;
+    private List<UserEntity.UserWithPws> users = new ArrayList<>();
     private final String curr_username;
 
     public UsersListAdapterAddChat(Context context, String username) {
@@ -62,14 +59,14 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     @Override
     public void onBindViewHolder(UserViewHolder holder, int position) {
         if (users != null) {
-            final UserEntity curr = users.get(position);
+            final UserEntity.UserWithPws curr = users.get(position);
             holder.username.setText(curr.getUsername());
             String userImageUrl = curr.getProfilePic();
             byte[] decodedImage = Base64.decode(userImageUrl, Base64.DEFAULT);
             Bitmap bitmap = BitmapFactory.decodeByteArray(decodedImage, 0, decodedImage.length);
             holder.user_pic.setImageBitmap(bitmap);
         }
-        UserEntity user = users.get(position);
+        UserEntity.UserWithPws user = users.get(position);
 
         // Navigate to chat page
         holder.itemView.setOnClickListener(v -> {
@@ -78,54 +75,70 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     }
 
     private Executor executor = Executors.newSingleThreadExecutor();
-    private void onItemClick(View itemView, UserEntity user) {
+    //when we click a user that we want to add to our chats
+    private void onItemClick(View itemView, UserEntity.UserWithPws user) {
         Context context = itemView.getContext();
         Intent intent = new Intent(context, ChatActivity.class);
 
-        // Pass the other user
+        // Pass the other user to the chat activity
         intent.putExtra("username", user.getUsername());
         intent.putExtra("profilePic", user.getProfilePic());
         intent.putExtra("displayName", user.getDisplayName());
+        intent.putExtra("current_username", curr_username);
 
         Runnable asyncRunnable = () -> {
             UserDatabase userDatabase = UserDatabase.getUserDatabase(context);
             UserDao userDao = userDatabase.userDao();
-            UserEntity currentUser = userDao.get(curr_username);
-
-            if (currentUser != null && !currentUser.getUserList().contains(user)) {
-                // Add the user to the current user's friend list
-                currentUser.addUserToUserList(user);
-
-                // Update the user record in the database with the modified friend list
-                userDao.updateUser(currentUser);
-
-                UserAPI userAPI = new UserAPI();
-                userAPI.addChat(currentUser, user);
-
-                Log.d("UserDatabase", "Friend added: " + user.getUsername());
+            //get current user Entity
+            UserEntity.UserWithPws currentUser = userDao.get(curr_username);
+            UserEntity currentUserWithoutPws = new UserEntity(currentUser.getUsername(),currentUser.getDisplayName(),currentUser.getProfilePic());
+            if (currentUser != null) {
+                ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(context);
+                ChatDao chatDao = chatsDatabase.chatDao();
+                List<ChatEntity> all_chats = chatDao.getAllChats();
+                UserEntity user_to_add = new UserEntity(user.getUsername(),user.getDisplayName(),user.getProfilePic());
+                boolean is_there = check_if_wanted_user_in_list(user_to_add,all_chats);
+                if(!is_there){
+                    //make new chat
+                    ChatEntity chat = new ChatEntity(currentUserWithoutPws,user_to_add);
+                    System.out.println("new "+chat.getChatId());
+                    // make chat in ROOM
+                    chatDao.createChat(chat);
+                    ChatAPI chatAPI = new ChatAPI();
+                    // add to db in server
+                    chatAPI.addChat(currentUser, user_to_add);
+                }
+//                // Add the user to the current user's friend list
+//                currentUser.addUserToUserList(user);
+//
+//                // Update the user record in the database with the modified friend list
+//                userDao.updateUser(currentUser);
             }
-
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         };
-
         executor.execute(asyncRunnable);
     }
 
 
-    public void setUsers(List<UserEntity> list) {
-        List<UserEntity> list_without_curr = new ArrayList<>();
-        for (UserEntity user : list) {
-            if (!curr_username.equals(user.getUsername())) {
+    public void setUsers(List<String> list) {
+        List<String> list_without_curr = new ArrayList<>();
+        for (String user : list) {
+            if (!curr_username.equals(user)) {
                 list_without_curr.add(user);
+                new Thread(()-> {
+                    UserDatabase userDatabase = UserDatabase.getUserDatabase(layoutInflater.getContext());
+                    UserDao userDao = userDatabase.userDao();
+                    UserEntity.UserWithPws friend = userDao.get(user);
+                    users.add(friend);
+                }).start();
             }
         }
-        users = list_without_curr;
         notifyDataSetChanged();
     }
 
-    public void setUser(UserEntity user) {
-        List<UserEntity> list_without_curr = new ArrayList<>();
+    public void setUser(UserEntity.UserWithPws user) {
+        List<UserEntity.UserWithPws> list_without_curr = new ArrayList<>();
         if (!curr_username.equals(user.getUsername())) {
             list_without_curr.add(user);
         }
@@ -142,8 +155,20 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
         return 0;
     }
 
-    public List<UserEntity> getUsers() {
+    public List<UserEntity.UserWithPws> getUsers() {
         return users;
+    }
+
+
+    private boolean check_if_wanted_user_in_list(UserEntity user, List<ChatEntity> list) {
+        for (ChatEntity chat : list) {
+            System.out.println(chat.getChatId());
+            List<UserEntity> participants = chat.getUsers();
+            if (participants != null && participants.contains(user)) {
+                return true; // User found in the participants list
+            }
+        }
+        return false; // User not found in any chat's participants list
     }
 
 }
