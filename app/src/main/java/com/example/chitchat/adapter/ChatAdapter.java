@@ -1,4 +1,4 @@
-package com.example.chitchat.adapter;//package com.example.chitchat.adapter;
+package com.example.chitchat.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -7,7 +7,6 @@ import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
 import com.example.chitchat.data.Chat.ChatItemData;
-import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -25,10 +23,19 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
     private Context context;
     private List<ChatItemData> chatItems;
+    private OnItemClickListener clickListener;
+
+    public interface OnItemClickListener {
+        void onItemClick(ChatItemData chatItem);
+    }
 
     public ChatAdapter(Context context, List<ChatItemData> chatItems) {
         this.context = context;
         this.chatItems = chatItems;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.clickListener = listener;
     }
 
     @NonNull
@@ -67,6 +74,14 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             displayName = itemView.findViewById(R.id.chats_user_name);
             lastMessage = itemView.findViewById(R.id.last_message_text);
             created = itemView.findViewById(R.id.time_text);
+
+            itemView.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && clickListener != null) {
+                    ChatItemData chatItem = chatItems.get(position);
+                    clickListener.onItemClick(chatItem);
+                }
+            });
         }
     }
 
@@ -75,5 +90,3 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         notifyDataSetChanged();
     }
 }
-
-
