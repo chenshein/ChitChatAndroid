@@ -109,6 +109,7 @@ public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickLis
     }
 
     // Implement the item click listener method
+    //TODO: change to chat screen with the other user on click
     @Override
     public void onItemClick(ChatItemData chatItem) {
         System.out.println(chatItem.getDisplayName());
