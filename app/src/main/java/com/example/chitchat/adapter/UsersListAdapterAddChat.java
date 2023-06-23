@@ -13,12 +13,10 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.Activity.AllChatsActivity;
-import com.example.chitchat.Activity.ChatActivity;
 import com.example.chitchat.R;
 import com.example.chitchat.api.ChatAPI;
 import com.example.chitchat.data.Chat.ChatDao;
 import com.example.chitchat.data.Chat.ChatEntity;
-import com.example.chitchat.data.Chat.ChatItemData;
 import com.example.chitchat.data.Chat.ChatsDatabase;
 import com.example.chitchat.data.ChatCallback;
 import com.example.chitchat.data.Msg.Message;
@@ -28,7 +26,6 @@ import com.example.chitchat.data.User.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -84,6 +81,7 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     private Executor executor = Executors.newSingleThreadExecutor();
     //when we click a user that we want to add to our chats
     private void onItemClick(View itemView, UserEntity user) {
+
         Context context = itemView.getContext();
         Intent intent = new Intent(context, AllChatsActivity.class);
 

@@ -7,22 +7,12 @@ import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
-import com.example.chitchat.data.User.UserDao;
-import com.example.chitchat.data.User.UserDatabase;
-import com.example.chitchat.data.User.UserEntity;
 import com.example.chitchat.fragment.ChatFragment;
 import com.example.chitchat.fragment.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
-
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class AllChatsActivity extends AppCompatActivity {
 
@@ -69,7 +59,6 @@ public class AllChatsActivity extends AppCompatActivity {
             }
         });
         bottomNavigationView.setSelectedItemId(R.id.menu_chats);
-
     }
 
 }
