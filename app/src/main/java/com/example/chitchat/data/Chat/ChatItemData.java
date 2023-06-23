@@ -1,8 +1,5 @@
 package com.example.chitchat.data.Chat;
 
-import android.widget.ImageView;
-import android.widget.TextView;
-
 public class ChatItemData {
 
     private String profilePic;
@@ -10,6 +7,7 @@ public class ChatItemData {
     private String lastMessage;
     private String created;
 
+    //TODO: add username to ChatItemData
     public ChatItemData(String profilePic,String displayName,String lastMessage,String created){
         this.created=created;
         this.lastMessage = lastMessage;

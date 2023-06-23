@@ -116,8 +116,11 @@ public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickLis
     public void onItemClick(ChatItemData chatItem) {
         System.out.println(chatItem.getDisplayName());
         Intent intent = new Intent(getContext(), ChatActivity.class);
+        // TODO: get username from chatItem
+        intent.putExtra("username",chatItem.getUsername());
         intent.putExtra("displayName",chatItem.getDisplayName());
         intent.putExtra("profilePic",chatItem.getProfilePic());
+        intent.putExtra("currentUsername",current_user.getUsername());
         //TODO if you want to pass more argument to the chat
         startActivity(intent);
     }

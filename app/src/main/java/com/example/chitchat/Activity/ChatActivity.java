@@ -13,22 +13,26 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
-import com.example.chitchat.api.ChatAPI;
 import com.example.chitchat.data.Chat.ChatDao;
 import com.example.chitchat.data.Chat.ChatEntity;
 import com.example.chitchat.data.Chat.ChatsDatabase;
-
+import com.example.chitchat.data.Msg.Message;
 import com.example.chitchat.data.User.UserEntity;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ChatActivity extends AppCompatActivity {
 
+    String currentUsername;
     String otherUserName;
     String otherUserImg;
     String otherUserDisplayName;
+
+    List<Message> messageList = new ArrayList<>();
 
     EditText input_msg;
     ImageButton sent_msg_btn;
@@ -38,7 +42,6 @@ public class ChatActivity extends AppCompatActivity {
     CircleImageView otherImg;
 
 
-
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,12 +49,12 @@ public class ChatActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chat);
 
         Bundle extras = getIntent().getExtras();
-
+        currentUsername = extras.getString("currentUsername");
         otherUserName = extras.getString("username");
         otherUserImg = extras.getString("profilePic");
         otherUserDisplayName = extras.getString("displayName");
 
-        sent_msg_btn =findViewById(R.id.chat_send);
+        sent_msg_btn = findViewById(R.id.chat_send);
         otherDisplayName = findViewById(R.id.other_username);
         input_msg = findViewById(R.id.chat_input_msg);
         back_btn = findViewById(R.id.go_back);
@@ -61,6 +64,19 @@ public class ChatActivity extends AppCompatActivity {
         //set the display username to be shown
         otherDisplayName.setText(otherUserDisplayName);
 
+
+        int chatId = findChatId(currentUsername, otherUserName);
+//        System.out.println("chat id is " + chatId);
+        new Thread(() -> {
+            ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
+            ChatDao chatDao = chatsDatabase.chatDao();
+            ChatEntity chatEntity = chatDao.getChatById(chatId);
+            if (chatEntity != null) {
+                messageList = chatEntity.getMessages();
+            }
+        }).start();
+
+        // Extract the messages from the chat entity
 
 
         // Set the user's photo to the CircleImageView
@@ -72,16 +88,15 @@ public class ChatActivity extends AppCompatActivity {
 
         //go back to chats view
         back_btn.setOnClickListener(v -> {
-           Intent intent =  new Intent(this,AllChatsActivity.class);
-            intent.putExtra("username",extras.getString("current_username"));
-
+            Intent intent = new Intent(this, AllChatsActivity.class);
+            intent.putExtra("username", extras.getString("current_username"));
             startActivity(intent);
-           finish();
+            finish();
         });
 
         sent_msg_btn.setOnClickListener(v -> {
             String msg = input_msg.getText().toString().trim();
-            if(msg.isEmpty()){
+            if (msg.isEmpty()) {
                 return;
             }
             sendMessageToUser(msg);
@@ -89,14 +104,53 @@ public class ChatActivity extends AppCompatActivity {
 
     }
 
-    void sendMessageToUser(String message){
+    void sendMessageToUser(String message) {
 
+    }
+    // TODO: implement this findChatId method
+    private int findChatId(String currentUser, String otherUser) {
+        final AtomicInteger chatId = new AtomicInteger(-1);
+
+        new Thread(() -> {
+            ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
+            ChatDao chatDao = chatsDatabase.chatDao();
+            List<ChatEntity> allChats = chatDao.getAllChats();
+
+            assert allChats != null;
+            for (ChatEntity chatEntity : allChats) {
+                List<UserEntity> users = chatEntity.getUsers();
+
+                boolean containsCurrentUser = false;
+                boolean containsOtherUser = false;
+
+                for (UserEntity user : users) {
+                    System.out.println("user is " + user.getUsername());
+                    System.out.println("current user is " + currentUser);
+                    System.out.println("other user is " + otherUser);
+                    if (user.getUsername().equals(currentUser)) {
+                        containsCurrentUser = true;
+                    } else if (user.getUsername().equals(otherUser)) {
+                        containsOtherUser = true;
+                    }
+
+                    if (containsCurrentUser && containsOtherUser) {
+                        chatId.set(chatEntity.getChatId());
+                        break;
+                    }
+                }
+                System.out.println("chat id is " + chatId.get());
+            }
+        }).start();
+
+        return chatId.get();
     }
 
     public Bitmap decodeBase64ToBitmap(String base64String) {
         byte[] decodedBytes = android.util.Base64.decode(base64String, android.util.Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
     }
-    public static void getOnCreateChatroomModel() {}
+
+    public static void getOnCreateChatroomModel() {
+    }
 
 }
