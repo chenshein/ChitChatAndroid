@@ -1,5 +1,6 @@
 package com.example.chitchat.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.chitchat.Activity.ChatActivity;
 import com.example.chitchat.R;
 import com.example.chitchat.adapter.ChatAdapter;
 import com.example.chitchat.data.Chat.ChatDao;
@@ -113,6 +115,11 @@ public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickLis
     @Override
     public void onItemClick(ChatItemData chatItem) {
         System.out.println(chatItem.getDisplayName());
+        Intent intent = new Intent(getContext(), ChatActivity.class);
+        intent.putExtra("displayName",chatItem.getDisplayName());
+        intent.putExtra("profilePic",chatItem.getProfilePic());
+        //TODO if you want to pass more argument to the chat
+        startActivity(intent);
     }
 
     // todo change
