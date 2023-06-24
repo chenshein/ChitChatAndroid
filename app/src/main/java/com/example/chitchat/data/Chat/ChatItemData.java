@@ -2,13 +2,23 @@ package com.example.chitchat.data.Chat;
 
 public class ChatItemData {
 
+    private String username;
     private String profilePic;
     private String displayName;
     private String lastMessage;
     private String created;
 
+
     //TODO: add username to ChatItemData
     public ChatItemData(String profilePic,String displayName,String lastMessage,String created){
+        this.created=created;
+        this.lastMessage = lastMessage;
+        this.displayName = displayName;
+        this.profilePic = profilePic;
+    }
+
+    public ChatItemData(String username, String profilePic,String displayName,String lastMessage,String created){
+        this.username = username;
         this.created=created;
         this.lastMessage = lastMessage;
         this.displayName = displayName;
@@ -45,5 +55,9 @@ public class ChatItemData {
 
     public void setCreated(String created) {
         this.created = created;
+    }
+
+    public String getUsername() {
+        return username;
     }
 }

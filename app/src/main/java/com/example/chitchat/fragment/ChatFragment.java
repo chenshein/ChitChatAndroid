@@ -1,6 +1,7 @@
 package com.example.chitchat.fragment;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -101,6 +102,7 @@ public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickLis
                     UserEntity otherUser = user;
                     chatItems.add(
                             new ChatItemData(
+                                    otherUser.getUsername(),
                                     otherUser.getProfilePic(),
                                     otherUser.getDisplayName(),
                                     "", ""));
@@ -114,14 +116,20 @@ public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickLis
     //TODO: change to chat screen with the other user on click
     @Override
     public void onItemClick(ChatItemData chatItem) {
-        System.out.println(chatItem.getDisplayName());
         Intent intent = new Intent(getContext(), ChatActivity.class);
         // TODO: get username from chatItem
-        intent.putExtra("username",chatItem.getUsername());
-        intent.putExtra("displayName",chatItem.getDisplayName());
-        intent.putExtra("profilePic",chatItem.getProfilePic());
-        intent.putExtra("currentUsername",current_user.getUsername());
-        //TODO if you want to pass more argument to the chat
+        intent.putExtra("username", chatItem.getUsername());
+        intent.putExtra("displayName", chatItem.getDisplayName());
+        intent.putExtra("currentUsername", current_user.getUsername());
+        intent.putExtra("currentDisplayName", current_user.getDisplayName());
+
+        // Set the profile picture URI
+        Uri profilePicUri = Uri.parse(chatItem.getProfilePic());
+        intent.setData(profilePicUri);
+
+        // Set the flag to grant read URI permission
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
         startActivity(intent);
     }
 

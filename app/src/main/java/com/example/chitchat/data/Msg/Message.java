@@ -47,11 +47,9 @@ public class Message {
         this.created = created;
     }
 
-    public Message(int messageId, UserEntity sender, String content, String created) {
-        this.messageId = messageId;
+    public Message(UserEntity sender, String content) {
         this.sender = sender;
         this.content = content;
-        this.created = created;
 
     }
 }
