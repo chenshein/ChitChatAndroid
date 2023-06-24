@@ -128,9 +128,9 @@ public class ChatActivity extends AppCompatActivity {
         // Update the messages array for the chat with the given chatId
         addMessageToChat(chatId, newMessage);
         // print messageList items
-        for (Message msg : messageList) {
-            System.out.println(msg.content);
-        }
+//        for (Message msg : messageList) {
+//            System.out.println(msg.content);
+//        }
         input_msg.setText("");
     }
 
