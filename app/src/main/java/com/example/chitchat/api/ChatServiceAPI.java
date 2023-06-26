@@ -4,6 +4,7 @@ import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatResponse;
 import com.example.chitchat.data.Chat.ChatUser;
 import com.example.chitchat.data.Msg.Message;
+import com.example.chitchat.data.Msg.MessageRequest;
 import com.example.chitchat.data.User.UserPwsName;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public interface ChatServiceAPI {
     Call<Void> deleteChat(@Path("id") int id);
 
     @POST("Chats/{id}/Messages")
-    Call<Void> createMsg(@Header("Authorization") String token,@Path("id") String id, @Body String msg);
+    Call<Void> createMsg(@Header("Authorization") String token, @Path("id") String id, @Body MessageRequest message);
 
     @GET("Chats/{id}/Messages")
     Call<List<Message>> getMessages(@Path("id") int id);

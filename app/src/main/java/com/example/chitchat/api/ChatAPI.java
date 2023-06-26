@@ -6,6 +6,7 @@ import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatResponse;
 import com.example.chitchat.data.Chat.ChatUser;
 import com.example.chitchat.data.ChatCallback;
+import com.example.chitchat.data.Msg.MessageRequest;
 import com.example.chitchat.data.User.UserEntity;
 import com.example.chitchat.data.User.UserPwsName;
 
@@ -160,7 +161,10 @@ public class ChatAPI {
                     String token = response.body();
                     String bearerToken = "Bearer " + token;
                     System.out.println("bearerToken: " + bearerToken);
-                    Call<Void> call = chatServiceAPI.createMsg(bearerToken,chatId,msg);
+
+                    MessageRequest messageRequest = new MessageRequest(msg);
+                    Call<Void> call = chatServiceAPI.createMsg(bearerToken, chatId, messageRequest);
+
                     call.enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {
@@ -194,6 +198,7 @@ public class ChatAPI {
             }
         });
     }
+
 
 
     public void getChatById(int chat_id){}
