@@ -6,10 +6,17 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 
+import java.util.List;
+
 @Dao
 public interface ChatDao {
 
-    @Query("SELECT * FROM chat WHERE chatId = :chatId")
+    @Query("SELECT * FROM chat")
+    List<ChatEntity> getAllChats();
+
+
+
+    @Query("SELECT * FROM chat WHERE chatIdRoom = :chatId")
     ChatEntity getChatById(int chatId);
 
     @Insert

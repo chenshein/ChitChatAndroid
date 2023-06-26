@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chitchat.R;
 import com.example.chitchat.api.UserAPI;
+import com.example.chitchat.data.GetUserCallback;
 import com.example.chitchat.data.LoginCallback;
 import com.example.chitchat.data.User.UserDao;
 import com.example.chitchat.data.User.UserDatabase;
@@ -24,10 +25,7 @@ public class LoginActivity extends AppCompatActivity {
     String usernamePattern = "^[a-zA-Z0-9_-]{3,16}$";
     String passwordPattern = "^(?=.*\\d)(?=.*[a-zA-Z])[a-zA-Z0-9!@#$%^&*()_+]{8,}$";
 
-    //TODO write this function
-    public void signInWithUsernameAndPassword(String username, String password) {
 
-    }
 
     @Override
     protected void onCreate(Bundle saveInstanceState) {
@@ -71,34 +69,48 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         //check if the user exists in the local database
-                        final UserEntity userEntity = userDao.login(Username, Password);
+                        final UserEntity.UserWithPws userEntity = userDao.login(Username, Password);
                         LoginActivity.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if (userEntity == null) {
-                                    Toast.makeText(LoginActivity.this, "Invalid username or/and password!", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    // User exists in the local database, perform login with UserAPI
+                                //login in api
+                                userAPI.login(Username, Password, new LoginCallback() {
+                                    @Override
+                                    public void onLoginSuccess(String token) {
+                                        if(userEntity ==null){ //not on the local database
+                                            new Thread(()->{
+                                                userAPI.getUserByName(token, Username, new GetUserCallback() {
+                                                    @Override
+                                                    public void onGetSuccess(UserEntity user) {
+                                                        UserEntity.UserWithPws new_user= new UserEntity.UserWithPws(Username,Password,user.getDisplayName(),user.getProfilePic());
+                                                        new Thread(()->{
+                                                            userDao.insert(new_user);
+                                                        }).start();
+                                                    }
 
-                                    userAPI.login(Username, Password, new LoginCallback() {
-                                        @Override
-                                        public void onLoginSuccess(String token) {
-                                            // Handle the successful login and token retrieval
-                                            Intent intent = new Intent(LoginActivity.this, AllChatsActivity.class);
-                                            intent.putExtra("username",Username); //pass the username
-                                            startActivity(intent);
-                                            finish();
+                                                    @Override
+                                                    public void onGetFailure(String error) {}
+                                                });
+
+                                            }).start();
+                                        }
+                                        // Handle the successful login and token retrieval
+                                        Intent intent = new Intent(LoginActivity.this, AllChatsActivity.class);
+                                        intent.putExtra("username",Username); //pass the username
+                                        startActivity(intent);
+                                        finish();
+                                    }
+
+                                    @Override
+                                    public void onLoginFailure(String error) {
+                                        //if the user is not on api and local db
+                                        if (userEntity == null) {
+                                            Toast.makeText(LoginActivity.this, "Invalid username or/and password!", Toast.LENGTH_SHORT).show();
                                         }
 
-                                        @Override
-                                        public void onLoginFailure(String error) {
-                                            // Handle the login failure and error
+                                    }
+                                });
 
-                                        }
-                                    });
-
-
-                                }
                             }
                         });
                     }

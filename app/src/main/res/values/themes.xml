@@ -13,4 +13,12 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <style name="AppTheme.LightTheme" parent="Theme.AppCompat.Light.NoActionBar">
+
+    </style>
+
+    <style name="AppTheme.DarkTheme" parent="Theme.AppCompat.NoActionBar">
+
+    </style>
 </resources>
