@@ -1,5 +1,4 @@
 package com.example.chitchat.data.User;
-import com.example.chitchat.data.User.UserEntity.UserWithPws;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -35,6 +34,8 @@ public interface UserDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insertFriend(UserEntity friend);
+
+
 
 
     @Delete

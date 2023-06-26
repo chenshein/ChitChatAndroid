@@ -27,6 +27,9 @@
             android:name=".Activity.AllChatsActivity"
             android:exported="false" />
         <activity
+            android:name=".Activity.SettingsActivity"
+            android:label="Settings" />
+        <activity
             android:name=".Activity.MainActivity"
             android:exported="true">
             <meta-data

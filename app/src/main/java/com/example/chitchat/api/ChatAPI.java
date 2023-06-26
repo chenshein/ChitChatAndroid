@@ -55,7 +55,8 @@ public class ChatAPI {
                         public void onResponse(Call<List<ChatEntity>> call, Response<List<ChatEntity>> response) {
                             if(response.isSuccessful()){
                                 List<ChatEntity> chatEntities = response.body();
-                                System.out.println("Get GOOD!:)");
+                                assert response.body() != null;
+                                System.out.println(response.body().get(0).toString());
                                 callback.onSuccess(chatEntities);
                             } else {
                                 String error = "GET failed. Response code: " + response.code() + " Error: " + response.errorBody().toString() + " Message: " + response.message();
