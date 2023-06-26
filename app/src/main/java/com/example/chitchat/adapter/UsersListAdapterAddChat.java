@@ -17,6 +17,7 @@ import com.example.chitchat.R;
 import com.example.chitchat.api.ChatAPI;
 import com.example.chitchat.data.Chat.ChatDao;
 import com.example.chitchat.data.Chat.ChatEntity;
+import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatsDatabase;
 import com.example.chitchat.data.ChatCallback;
 import com.example.chitchat.data.Msg.Message;
@@ -118,7 +119,7 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
                     }
 
                     @Override
-                    public void onSuccess(List<ChatEntity> chatEntities) {
+                    public void onSuccess(List<ChatRespondGet> chatEntities) {
                     }
 
                     @Override

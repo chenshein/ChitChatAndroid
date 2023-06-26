@@ -3,6 +3,7 @@ package com.example.chitchat.api;
 import com.example.chitchat.MyApplication;
 import com.example.chitchat.R;
 import com.example.chitchat.data.Chat.ChatEntity;
+import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatResponse;
 import com.example.chitchat.data.Chat.ChatUser;
 import com.example.chitchat.data.ChatCallback;
@@ -52,24 +53,21 @@ public class ChatAPI {
                 if (response.isSuccessful()) {
                     String token = response.body();
                     String bearerToken = "Bearer " + token;
-                    System.out.println("Bearer Token: " + bearerToken + ": " + currentUser.getUsername());
-                    Call<List<ChatEntity>> call = chatServiceAPI.getChats(bearerToken);
-                    call.enqueue(new Callback<List<ChatEntity>>() {
+                    Call<List<ChatRespondGet>> call = chatServiceAPI.getChats(bearerToken);
+                    call.enqueue(new Callback<List<ChatRespondGet>>() {
                         @Override
-                        public void onResponse(Call<List<ChatEntity>> call, Response<List<ChatEntity>> response) {
+                        public void onResponse(Call<List<ChatRespondGet>> call, Response<List<ChatRespondGet>> response) {
                             if(response.isSuccessful()){
-                                List<ChatEntity> chatEntities = response.body();
-                                System.out.println("Get GOOD!:)");
+                                List<ChatRespondGet> chatEntities = response.body();
                                 callback.onSuccess(chatEntities);
                             } else {
                                 String error = "GET failed. Response code: " + response.code() + " Error: " + response.errorBody().toString() + " Message: " + response.message();
-                                System.out.println(error);
                                 callback.onFailure(error);
                             }
                         }
 
                         @Override
-                        public void onFailure(Call<List<ChatEntity>> call, Throwable t) {
+                        public void onFailure(Call<List<ChatRespondGet>> call, Throwable t) {
                             String error = "GET creation failed. Error: " + t.getMessage();
                             System.out.println(error);
                             callback.onFailure(error);
@@ -155,7 +153,7 @@ public class ChatAPI {
 
 
 
-    public void addMsg(UserEntity.UserWithPws currentUser, Message msg, int chatId, ChatCallback callback) {
+    public void addMsg(UserEntity.UserWithPws currentUser, Message msg, String chatId, ChatCallback callback) {
         UserPwsName userPwsName = new UserPwsName(currentUser.getUsername(), currentUser.getPassword());
         Call<String> tokenCall = chatServiceAPI.getToken(userPwsName);
 
@@ -165,13 +163,11 @@ public class ChatAPI {
                 if (response.isSuccessful()) {
                     String token = response.body();
                     String bearerToken = "Bearer " + token;
-                    String chatIdStr = String.valueOf(chatId);
-                    Call<Void> call = chatServiceAPI.createMsg(bearerToken,chatIdStr,msg);
+                    Call<Void> call = chatServiceAPI.createMsg(bearerToken,chatId,msg);
                     call.enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {
                             if (response.isSuccessful()) {
-                                System.out.println("MSG created");
                                 callback.onSuccessRes("true");
                             } else {
                                 String error = "MSG creation failed. Response code: " + response.code() + " Error: " + response.errorBody().toString() + " Message: " + response.message();

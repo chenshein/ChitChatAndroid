@@ -14,27 +14,35 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
+import com.example.chitchat.api.ChatAPI;
 import com.example.chitchat.data.Chat.ChatDao;
 import com.example.chitchat.data.Chat.ChatEntity;
+import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatsDatabase;
+import com.example.chitchat.data.ChatCallback;
 import com.example.chitchat.data.Msg.Message;
+import com.example.chitchat.data.User.UserDao;
+import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ChatActivity extends AppCompatActivity {
 
+    UserEntity.UserWithPws current_user;
     String currentUsername;
     String currentDisplayName;
     String currentUserImg;
     String otherUserName;
     String otherUserImg;
     String otherUserDisplayName;
-    int chatId = -1;
+    String chatIdServer;
+    int chatIdRoom;
 
     List<Message> messageList = new ArrayList<>();
 
@@ -76,18 +84,28 @@ public class ChatActivity extends AppCompatActivity {
         otherDisplayName.setText(otherUserDisplayName);
 
 
-        // findChatId(currentUsername, otherUserName);
-        System.out.println("chat id is " + chatId);
+        findChatId(currentUsername, otherUserName);
+        System.out.println("chat id is " + chatIdServer);
         new Thread(() -> {
             ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
             ChatDao chatDao = chatsDatabase.chatDao();
-            ChatEntity chatEntity = chatDao.getChatById(chatId);
+            List<ChatEntity> allChats = chatDao.getAllChats();
+            for (ChatEntity chat : allChats){
+                if(chat.getChatIdServer().equals(chatIdServer)){
+                    chatIdRoom = chat.getChatIdRoom();
+                }
+            }
+            ChatEntity chatEntity = chatDao.getChatById(chatIdRoom);
             if (chatEntity != null) {
                 messageList = chatEntity.getMessages();
             }
         }).start();
 
-        // Extract the messages from the chat entity
+        new Thread(() -> {
+            UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
+            UserDao userDao = userDatabase.userDao();
+            current_user= userDao.get(currentUsername);
+        }).start();
 
 
         // Set the user's photo to the CircleImageView
@@ -110,23 +128,20 @@ public class ChatActivity extends AppCompatActivity {
             if (msg.isEmpty()) {
                 return;
             }
-            sendMessageToUser(msg, chatId);
+            sendMessageToUser(msg);
         });
 
     }
 
-    void sendMessageToUser(String message, int chatId) {
-        System.out.println("sending message to user: " + message);
-        System.out.println("chat id is " + chatId);
+    void sendMessageToUser(String message) {
 
-        // Add the message to the messageList
-        UserEntity currentUser = new UserEntity(currentUsername, currentDisplayName, currentUserImg);
 
-        Message newMessage = new Message(currentUser, message);
+
+        Message newMessage = new Message(current_user, message);
         messageList.add(newMessage);
 
         // Update the messages array for the chat with the given chatIdServer
-        addMessageToChat(chatId, newMessage);
+        addMessageToChat(newMessage);
         // print messageList items
 //        for (Message msg : messageList) {
 //            System.out.println(msg.content);
@@ -134,11 +149,11 @@ public class ChatActivity extends AppCompatActivity {
         input_msg.setText("");
     }
 
-    private void addMessageToChat(int chatId, Message message) {
+    private void addMessageToChat(Message message) {
         new Thread(() -> {
             ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
             ChatDao chatDao = chatsDatabase.chatDao();
-            ChatEntity chatEntity = chatDao.getChatById(chatId);
+            ChatEntity chatEntity = chatDao.getChatById(chatIdRoom);
             if (chatEntity != null) {
                 System.out.println("chat entity is not null");
                 List<Message> chatMessages = chatEntity.getMessages();
@@ -150,10 +165,64 @@ public class ChatActivity extends AppCompatActivity {
                 chatDao.updateChat(chatEntity);
             }
         }).start();
+
+        new Thread(() -> {
+            ChatAPI chatAPI = new ChatAPI();
+            chatAPI.addMsg(current_user, message, chatIdServer, new ChatCallback() {
+                @Override
+                public void onSuccessRes(String val) {
+                    //handle success
+                }
+
+                @Override
+                public void onSuccess(List<ChatRespondGet> chatEntities) {}
+
+                @Override
+                public void onFailure(String errorMessage) {}
+            });
+        }).start();
     }
 
     // TODO: implement this findChatId method
-//    private void findChatId(String currentUser, String otherUser) {
+    private void findChatId(String currentUser, String otherUser) {
+        Executor executor = Executors.newSingleThreadExecutor();
+        Runnable asyncRunnable = () -> {
+            UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
+            UserDao userDao = userDatabase.userDao();
+            UserEntity.UserWithPws currentUserEntity = userDao.get(currentUser);
+            // TODO: create an entity that can read the result of the response
+            // in order to add a new chat
+            if (currentUserEntity != null) {
+                ChatAPI chatAPI = new ChatAPI();
+
+                //get all chat with the current user
+                chatAPI.get(currentUserEntity, new ChatCallback() {
+                    @Override
+                    public void onSuccessRes(String val) {}
+
+                    @Override
+                    public void onSuccess(List<ChatRespondGet> allUserChats) {
+                        //check if the wanted user is in the current user chat list
+                        if(allUserChats == null){
+                            return;
+                        }
+                        for (ChatRespondGet chat : allUserChats) {
+                            if (chat.getUser().getUsername().equals(otherUser)) {
+                                chatIdServer = chat.getId();
+                                break;
+                            }
+
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        System.out.println("chen failed"+errorMessage);
+                    }
+                });
+            }
+        };
+        executor.execute(asyncRunnable);
 //        final AtomicInteger chatIdServer = new AtomicInteger(-1);
 //
 //        new Thread(() -> {
@@ -176,8 +245,8 @@ public class ChatActivity extends AppCompatActivity {
 //                    }
 //
 //                    if (containsCurrentUser && containsOtherUser) {
-//                        chatIdServer.set(chatEntity.getChatIdServer());
-//                        this.chatIdServer = chatEntity.getChatIdServer();
+//                        chatIdServer.set(chatEntity.getChatId());
+//                        this.chatIdServer = chatEntity.getChatId();
 //                        System.out.println("chat id is " + this.chatIdServer);
 //                        // set the messageList to be the messages of the chat with the given chatIdServer
 //                        messageList = chatEntity.getMessages();
@@ -187,10 +256,7 @@ public class ChatActivity extends AppCompatActivity {
 ////                System.out.println("chat id is " + chatIdServer.get());
 //            }
 //        }).start();
-//    }
-
-
-
+    }
 
     public Bitmap decodeBase64ToBitmap(String base64String) {
         byte[] decodedBytes = android.util.Base64.decode(base64String, android.util.Base64.DEFAULT);

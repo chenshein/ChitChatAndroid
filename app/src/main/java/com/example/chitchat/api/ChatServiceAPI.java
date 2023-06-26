@@ -1,6 +1,7 @@
 package com.example.chitchat.api;
 
 import com.example.chitchat.data.Chat.ChatEntity;
+import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatResponse;
 import com.example.chitchat.data.Chat.ChatUser;
 import com.example.chitchat.data.Msg.Message;
@@ -20,7 +21,7 @@ import retrofit2.http.Path;
 
 public interface ChatServiceAPI {
     @GET("Chats")
-    Call<List<ChatEntity>> getChats(@Header("Authorization") String token);
+    Call<List<ChatRespondGet>> getChats(@Header("Authorization") String token);
 
     @POST("Chats")
     Call<ChatResponse> createChat(@Header("Authorization") String token, @Body ChatUser username);
