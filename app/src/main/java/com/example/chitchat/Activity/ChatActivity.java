@@ -135,7 +135,22 @@ public class ChatActivity extends AppCompatActivity {
 
     void sendMessageToUser(String message) {
 
+        new Thread(() -> {
+            ChatAPI chatAPI = new ChatAPI();
+            chatAPI.addMsg(current_user, message, chatIdServer, new ChatCallback() {
+                @Override
+                public void onSuccessRes(String val) {
+                    int i = 0 ;
+                    //handle success
+                }
 
+                @Override
+                public void onSuccess(List<ChatRespondGet> chatEntities) {}
+
+                @Override
+                public void onFailure(String errorMessage) {}
+            });
+        }).start();
 
         Message newMessage = new Message(current_user, message);
         messageList.add(newMessage);
@@ -166,21 +181,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         }).start();
 
-        new Thread(() -> {
-            ChatAPI chatAPI = new ChatAPI();
-            chatAPI.addMsg(current_user, message, chatIdServer, new ChatCallback() {
-                @Override
-                public void onSuccessRes(String val) {
-                    //handle success
-                }
 
-                @Override
-                public void onSuccess(List<ChatRespondGet> chatEntities) {}
-
-                @Override
-                public void onFailure(String errorMessage) {}
-            });
-        }).start();
     }
 
     // TODO: implement this findChatId method
@@ -223,39 +224,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         };
         executor.execute(asyncRunnable);
-//        final AtomicInteger chatIdServer = new AtomicInteger(-1);
-//
-//        new Thread(() -> {
-//            ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
-//            ChatDao chatDao = chatsDatabase.chatDao();
-//            List<ChatEntity> allChats = chatDao.getAllChats();
-//
-//            assert allChats != null;
-//            for (ChatEntity chatEntity : allChats) {
-//                List<UserEntity> users = chatEntity.getUsers();
-//
-//                boolean containsCurrentUser = false;
-//                boolean containsOtherUser = false;
-//
-//                for (UserEntity user : users) {
-//                    if (user.getUsername().equals(currentUser)) {
-//                        containsCurrentUser = true;
-//                    } else if (user.getUsername().equals(otherUser)) {
-//                        containsOtherUser = true;
-//                    }
-//
-//                    if (containsCurrentUser && containsOtherUser) {
-//                        chatIdServer.set(chatEntity.getChatId());
-//                        this.chatIdServer = chatEntity.getChatId();
-//                        System.out.println("chat id is " + this.chatIdServer);
-//                        // set the messageList to be the messages of the chat with the given chatIdServer
-//                        messageList = chatEntity.getMessages();
-//                        break;
-//                    }
-//                }
-////                System.out.println("chat id is " + chatIdServer.get());
-//            }
-//        }).start();
     }
 
     public Bitmap decodeBase64ToBitmap(String base64String) {

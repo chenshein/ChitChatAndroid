@@ -30,7 +30,7 @@ public interface ChatServiceAPI {
     Call<Void> deleteChat(@Path("id") int id);
 
     @POST("Chats/{id}/Messages")
-    Call<Void> createMsg(@Header("Authorization") String token,@Path("id") String id, @Body Message msg);
+    Call<Void> createMsg(@Header("Authorization") String token,@Path("id") String id, @Body String msg);
 
     @GET("Chats/{id}/Messages")
     Call<List<Message>> getMessages(@Path("id") int id);

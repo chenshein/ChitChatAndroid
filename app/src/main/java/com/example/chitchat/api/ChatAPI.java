@@ -153,7 +153,7 @@ public class ChatAPI {
 
 
 
-    public void addMsg(UserEntity.UserWithPws currentUser, Message msg, String chatId, ChatCallback callback) {
+    public void addMsg(UserEntity.UserWithPws currentUser, String msg, String chatId, ChatCallback callback) {
         UserPwsName userPwsName = new UserPwsName(currentUser.getUsername(), currentUser.getPassword());
         Call<String> tokenCall = chatServiceAPI.getToken(userPwsName);
 
