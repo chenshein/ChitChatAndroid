@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase;
 import com.example.chitchat.data.User.UserEntity;
 
 
-@Database(entities = {ChatEntity.class, UserEntity.class}, version = 3)
+@Database(entities = {ChatEntity.class, UserEntity.class}, version = 4)
 public abstract class ChatsDatabase extends RoomDatabase {
     private static final String dbName = "chats";
     private static ChatsDatabase chatsDatabase;

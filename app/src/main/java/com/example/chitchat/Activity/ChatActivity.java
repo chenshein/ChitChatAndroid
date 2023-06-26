@@ -1,6 +1,7 @@
 package com.example.chitchat.Activity;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -86,20 +87,7 @@ public class ChatActivity extends AppCompatActivity {
 
         findChatId(currentUsername, otherUserName);
         System.out.println("chat id is " + chatIdServer);
-        new Thread(() -> {
-            ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
-            ChatDao chatDao = chatsDatabase.chatDao();
-            List<ChatEntity> allChats = chatDao.getAllChats();
-            for (ChatEntity chat : allChats){
-                if(chat.getChatIdServer().equals(chatIdServer)){
-                    chatIdRoom = chat.getChatIdRoom();
-                }
-            }
-            ChatEntity chatEntity = chatDao.getChatById(chatIdRoom);
-            if (chatEntity != null) {
-                messageList = chatEntity.getMessages();
-            }
-        }).start();
+
 
         new Thread(() -> {
             UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
@@ -135,22 +123,7 @@ public class ChatActivity extends AppCompatActivity {
 
     void sendMessageToUser(String message) {
 
-        new Thread(() -> {
-            ChatAPI chatAPI = new ChatAPI();
-            chatAPI.addMsg(current_user, message, chatIdServer, new ChatCallback() {
-                @Override
-                public void onSuccessRes(String val) {
-                    int i = 0 ;
-                    //handle success
-                }
 
-                @Override
-                public void onSuccess(List<ChatRespondGet> chatEntities) {}
-
-                @Override
-                public void onFailure(String errorMessage) {}
-            });
-        }).start();
 
         Message newMessage = new Message(current_user, message);
         messageList.add(newMessage);
@@ -168,7 +141,8 @@ public class ChatActivity extends AppCompatActivity {
         new Thread(() -> {
             ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
             ChatDao chatDao = chatsDatabase.chatDao();
-            ChatEntity chatEntity = chatDao.getChatById(chatIdRoom);
+            System.out.println("chat id is " + this.chatIdRoom);
+            ChatEntity chatEntity = chatDao.getChatById(this.chatIdRoom);
             if (chatEntity != null) {
                 System.out.println("chat entity is not null");
                 List<Message> chatMessages = chatEntity.getMessages();
@@ -178,52 +152,118 @@ public class ChatActivity extends AppCompatActivity {
                     System.out.println(msg.content);
                 }
                 chatDao.updateChat(chatEntity);
+            } else {
+                System.out.println("chat entity is null");
             }
         }).start();
 
+        new Thread(() -> {
+            ChatAPI chatAPI = new ChatAPI();
+            chatAPI.addMsg(current_user, message.content, chatIdServer, new ChatCallback() {
+                @Override
+                public void onSuccessRes(String val) {
+                    //handle success
+                }
 
+                @Override
+                public void onSuccess(List<ChatRespondGet> chatEntities) {}
+
+                @Override
+                public void onFailure(String errorMessage) {}
+            });
+        }).start();
     }
 
     // TODO: implement this findChatId method
     private void findChatId(String currentUser, String otherUser) {
         Executor executor = Executors.newSingleThreadExecutor();
         Runnable asyncRunnable = () -> {
-            UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
+            Context context = this; // Store the context reference
+
+            UserDatabase userDatabase = UserDatabase.getUserDatabase(context);
             UserDao userDao = userDatabase.userDao();
             UserEntity.UserWithPws currentUserEntity = userDao.get(currentUser);
-            // TODO: create an entity that can read the result of the response
-            // in order to add a new chat
+
             if (currentUserEntity != null) {
                 ChatAPI chatAPI = new ChatAPI();
 
-                //get all chat with the current user
                 chatAPI.get(currentUserEntity, new ChatCallback() {
                     @Override
                     public void onSuccessRes(String val) {}
 
                     @Override
                     public void onSuccess(List<ChatRespondGet> allUserChats) {
-                        //check if the wanted user is in the current user chat list
                         if(allUserChats == null){
                             return;
                         }
                         for (ChatRespondGet chat : allUserChats) {
                             if (chat.getUser().getUsername().equals(otherUser)) {
                                 chatIdServer = chat.getId();
+                                System.out.println("200 chat id server is " + chatIdServer);
                                 break;
                             }
-
                         }
+
+                        new Thread(() -> {
+                            ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(context);
+                            ChatDao chatDao = chatsDatabase.chatDao();
+                            List<ChatEntity> allChats = chatDao.getAllChats();
+                            for (ChatEntity chat : allChats){
+                                System.out.println("chat id server is " + chat.getChatIdServer());
+                                if(chat.getChatIdServer().equals(chatIdServer)){
+                                    chatIdRoom = chat.getChatIdRoom();
+                                    System.out.println("chat id room is " + chatIdRoom);
+                                }
+                            }
+                            ChatEntity chatEntity = chatDao.getChatById(chatIdRoom);
+                            if (chatEntity != null) {
+                                messageList = chatEntity.getMessages();
+                            }
+                        }).start();
                     }
 
                     @Override
                     public void onFailure(String errorMessage) {
-                        System.out.println("chen failed"+errorMessage);
+                        System.out.println("ChatAPI failed: " + errorMessage);
                     }
                 });
             }
         };
         executor.execute(asyncRunnable);
+
+//        final AtomicInteger chatIdServer = new AtomicInteger(-1);
+//
+//        new Thread(() -> {
+//            ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
+//            ChatDao chatDao = chatsDatabase.chatDao();
+//            List<ChatEntity> allChats = chatDao.getAllChats();
+//
+//            assert allChats != null;
+//            for (ChatEntity chatEntity : allChats) {
+//                List<UserEntity> users = chatEntity.getUsers();
+//
+//                boolean containsCurrentUser = false;
+//                boolean containsOtherUser = false;
+//
+//                for (UserEntity user : users) {
+//                    if (user.getUsername().equals(currentUser)) {
+//                        containsCurrentUser = true;
+//                    } else if (user.getUsername().equals(otherUser)) {
+//                        containsOtherUser = true;
+//                    }
+//
+//                    if (containsCurrentUser && containsOtherUser) {
+//                        chatIdServer.set(chatEntity.getChatId());
+//                        this.chatIdServer = chatEntity.getChatId();
+//                        System.out.println("chat id is " + this.chatIdServer);
+//                        // set the messageList to be the messages of the chat with the given chatIdServer
+//                        messageList = chatEntity.getMessages();
+//                        break;
+//                    }
+//                }
+////                System.out.println("chat id is " + chatIdServer.get());
+//            }
+//        }).start();
     }
 
     public Bitmap decodeBase64ToBitmap(String base64String) {

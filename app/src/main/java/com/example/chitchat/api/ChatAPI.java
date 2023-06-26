@@ -2,16 +2,12 @@ package com.example.chitchat.api;
 
 import com.example.chitchat.MyApplication;
 import com.example.chitchat.R;
-import com.example.chitchat.data.Chat.ChatEntity;
 import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatResponse;
 import com.example.chitchat.data.Chat.ChatUser;
 import com.example.chitchat.data.ChatCallback;
-import com.example.chitchat.data.Msg.Message;
 import com.example.chitchat.data.User.UserEntity;
 import com.example.chitchat.data.User.UserPwsName;
-
-import org.json.JSONObject;
 
 import java.util.List;
 
@@ -163,6 +159,7 @@ public class ChatAPI {
                 if (response.isSuccessful()) {
                     String token = response.body();
                     String bearerToken = "Bearer " + token;
+                    System.out.println("bearerToken: " + bearerToken);
                     Call<Void> call = chatServiceAPI.createMsg(bearerToken,chatId,msg);
                     call.enqueue(new Callback<Void>() {
                         @Override
