@@ -46,12 +46,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
             params.gravity = Gravity.END;
             holder.bubbleLayout.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.sender_shape));
         } else {
-            // Align to the left for other user's messages
+            // Align to the left for other users' messages
             params.gravity = Gravity.START;
             holder.bubbleLayout.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.reciver_shape));
         }
         holder.bubbleLayout.setLayoutParams(params);
     }
+
 
     @Override
     public int getItemCount() {

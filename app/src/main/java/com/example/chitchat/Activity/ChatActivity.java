@@ -120,6 +120,7 @@ public class ChatActivity extends AppCompatActivity {
             }
             sendMessageToUser(msg);
         });
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         // Create the message adapter and set it to the RecyclerView
         MessageAdapter messageAdapter = new MessageAdapter(messageList, current_user.getUsername());
         recyclerView.setAdapter(messageAdapter);
@@ -137,6 +138,9 @@ public class ChatActivity extends AppCompatActivity {
 //            System.out.println(msg.content);
 //        }
         input_msg.setText("");
+        MessageAdapter messageAdapter = new MessageAdapter(messageList, current_user.getUsername());
+        recyclerView.setAdapter(messageAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
     private void addMessageToChat(Message message) {
