@@ -98,56 +98,43 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
             if (currentUser != null) {
                 //TODO in to be from db server to know if the chat exist
                 ChatAPI chatAPI = new ChatAPI();
-
-                //get all chat with the current user
-                chatAPI.get(currentUser, new ChatCallback() {
+                chatAPI.addChat(currentUser, user.getUsername(), new ChatCallback() {
                     @Override
-                    public void onSuccessRes(boolean returnVal) {
+                    public void onSuccessRes(String returnVal) { // chat added !! returnVal is the id that the server return
+                        if (!returnVal.equals("failed")) {
+                            //create the chat in ROOM db
+                            new Thread(() -> {
+                                List<UserEntity> list = new ArrayList<>();
+                                list.add((UserEntity) currentUser);
+                                list.add(user);
+                                List<Message> messageList = new ArrayList<>();
 
+                                ChatEntity new_chat = new ChatEntity(returnVal, list, messageList, "", new Timestamp(System.currentTimeMillis()));
+                                ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(context);
+                                ChatDao chatDao = chatsDatabase.chatDao();
+                                chatDao.createChat(new_chat);
+                            }).start();
+                        }
                     }
 
-
                     @Override
-                    public void onSuccess(List<ChatEntity> chatEntities) { // the wanted user found, now we add new chat with him
-                        chatAPI.addChat(currentUser, user.getUsername(), new ChatCallback() {
-                            @Override
-                            public void onSuccessRes(boolean returnVal) { // chat added !!
-                                if(returnVal){
-                                    //create the chat in ROOM db
-                                    new Thread(()->{
-                                        List<UserEntity> list = new ArrayList<>();
-                                        list.add((UserEntity) currentUser);
-                                        list.add(user);
-                                        List<Message> messageList = new ArrayList<>();
-                                        ChatEntity new_chat = new ChatEntity(list,messageList,"", new Timestamp(System.currentTimeMillis()));
-                                        ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(context);
-                                        ChatDao chatDao = chatsDatabase.chatDao();
-                                        chatDao.createChat(new_chat);
-                                    }).start();
-                                }
-                            }
-
-                            @Override
-                            public void onSuccess(List<ChatEntity> chatEntities) {}
-
-                            @Override
-                            public void onFailure(String errorMessage) {
-
-                            }
-                        });
-
-
+                    public void onSuccess(List<ChatEntity> chatEntities) {
                     }
 
                     @Override
                     public void onFailure(String errorMessage) {
-                        System.out.println("chen failed"+errorMessage);
+
                     }
                 });
+
+
             }
+
+
+        };
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
-        };
+
         executor.execute(asyncRunnable);
     }
 
@@ -197,7 +184,7 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
 
     private boolean check_if_wanted_user_in_list(UserEntity user, List<ChatEntity> list) {
         for (ChatEntity chat : list) {
-            System.out.println(chat.getChatId());
+            System.out.println(chat.getChatIdServer());
             List<UserEntity> participants = chat.getUsers();
             if (participants != null && participants.contains(user)) {
                 return true; // User found in the participants list

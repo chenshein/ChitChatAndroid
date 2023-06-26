@@ -14,20 +14,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
-import com.example.chitchat.api.ChatAPI;
 import com.example.chitchat.data.Chat.ChatDao;
 import com.example.chitchat.data.Chat.ChatEntity;
 import com.example.chitchat.data.Chat.ChatsDatabase;
-import com.example.chitchat.data.ChatCallback;
 import com.example.chitchat.data.Msg.Message;
-import com.example.chitchat.data.User.UserDao;
-import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -81,7 +76,7 @@ public class ChatActivity extends AppCompatActivity {
         otherDisplayName.setText(otherUserDisplayName);
 
 
-        findChatId(currentUsername, otherUserName);
+        // findChatId(currentUsername, otherUserName);
         System.out.println("chat id is " + chatId);
         new Thread(() -> {
             ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
@@ -130,7 +125,7 @@ public class ChatActivity extends AppCompatActivity {
         Message newMessage = new Message(currentUser, message);
         messageList.add(newMessage);
 
-        // Update the messages array for the chat with the given chatId
+        // Update the messages array for the chat with the given chatIdServer
         addMessageToChat(chatId, newMessage);
         // print messageList items
 //        for (Message msg : messageList) {
@@ -158,56 +153,8 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     // TODO: implement this findChatId method
-    private void findChatId(String currentUser, String otherUser) {
-        Executor executor = Executors.newSingleThreadExecutor();
-        Runnable asyncRunnable = () -> {
-            UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
-            UserDao userDao = userDatabase.userDao();
-            UserEntity.UserWithPws currentUserEntity = userDao.get(currentUser);
-            // TODO: create an entity that can read the result of the response
-            // in order to add a new chat
-            if (currentUserEntity != null) {
-                ChatAPI chatAPI = new ChatAPI();
-
-                //get all chat with the current user
-                chatAPI.get(currentUserEntity, new ChatCallback() {
-                    @Override
-                    public void onSuccessRes(boolean returnVal) {
-
-                    }
-
-
-                    @Override
-                    public void onSuccess(List<ChatEntity> chatEntities) {
-                        //check if the wanted user is in the current user chat list
-                        if(chatEntities == null){
-                            return;
-                        }
-                        for (ChatEntity chatEntity : chatEntities) {
-                            // print chatEntity
-                            System.out.println("chatEntity: " + chatEntity.getChatId());
-                            List<UserEntity> users = chatEntity.getUsers();
-                            if(users == null){
-                                return;
-                            }
-                            for (UserEntity user : users) {
-                                if (user.getUsername().equals(otherUser)) {
-                                    chatId = chatEntity.getChatId(); //get the chat id
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(String errorMessage) {
-                        System.out.println("chen failed"+errorMessage);
-                    }
-                });
-            }
-        };
-        executor.execute(asyncRunnable);
-//        final AtomicInteger chatId = new AtomicInteger(-1);
+//    private void findChatId(String currentUser, String otherUser) {
+//        final AtomicInteger chatIdServer = new AtomicInteger(-1);
 //
 //        new Thread(() -> {
 //            ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
@@ -229,18 +176,21 @@ public class ChatActivity extends AppCompatActivity {
 //                    }
 //
 //                    if (containsCurrentUser && containsOtherUser) {
-//                        chatId.set(chatEntity.getChatId());
-//                        this.chatId = chatEntity.getChatId();
-//                        System.out.println("chat id is " + this.chatId);
-//                        // set the messageList to be the messages of the chat with the given chatId
+//                        chatIdServer.set(chatEntity.getChatIdServer());
+//                        this.chatIdServer = chatEntity.getChatIdServer();
+//                        System.out.println("chat id is " + this.chatIdServer);
+//                        // set the messageList to be the messages of the chat with the given chatIdServer
 //                        messageList = chatEntity.getMessages();
 //                        break;
 //                    }
 //                }
-////                System.out.println("chat id is " + chatId.get());
+////                System.out.println("chat id is " + chatIdServer.get());
 //            }
 //        }).start();
-    }
+//    }
+
+
+
 
     public Bitmap decodeBase64ToBitmap(String base64String) {
         byte[] decodedBytes = android.util.Base64.decode(base64String, android.util.Base64.DEFAULT);

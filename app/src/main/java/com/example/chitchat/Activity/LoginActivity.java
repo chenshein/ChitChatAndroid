@@ -76,7 +76,6 @@ public class LoginActivity extends AppCompatActivity {
                                     Toast.makeText(LoginActivity.this, "Invalid username or/and password!", Toast.LENGTH_SHORT).show();
                                 } else {
                                     // User exists in the local database, perform login with UserAPI
-
                                     userAPI.login(Username, Password, new LoginCallback() {
                                         @Override
                                         public void onLoginSuccess(String token) {
