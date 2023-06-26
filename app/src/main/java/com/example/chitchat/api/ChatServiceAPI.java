@@ -1,13 +1,10 @@
 package com.example.chitchat.api;
 
-import com.example.chitchat.data.Chat.ChatEntity;
 import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatResponse;
 import com.example.chitchat.data.Chat.ChatUser;
 import com.example.chitchat.data.Msg.Message;
-import com.example.chitchat.data.Msg.Message;
 import com.example.chitchat.data.User.UserPwsName;
-import com.google.gson.Gson;
 
 import java.util.List;
 
@@ -30,7 +27,7 @@ public interface ChatServiceAPI {
     Call<Void> deleteChat(@Path("id") int id);
 
     @POST("Chats/{id}/Messages")
-    Call<Void> createMsg(@Header("Authorization") String token,@Path("id") String id, @Body Message msg);
+    Call<Void> createMsg(@Header("Authorization") String token,@Path("id") String id, @Body String msg);
 
     @GET("Chats/{id}/Messages")
     Call<List<Message>> getMessages(@Path("id") int id);

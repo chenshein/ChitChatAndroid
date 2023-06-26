@@ -64,19 +64,19 @@ public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickLis
             ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(getContext());
             ChatDao chatDao = chatsDatabase.chatDao();
             //all chats in ROOM db
-            chats = chatDao.getAllChats();
-            List<ChatEntity> user_chats = new ArrayList<>();
-
-            //in order to get all user's chats
-            for (ChatEntity chat : chats) {
-                List<UserEntity> users = chat.getUsers();
-                for (UserEntity user : users) {
-                    if (user.getUsername().equals(currentUser_str)) {
-                        user_chats.add(chat);
-                    }
-                }
-            }
-            chats = user_chats;
+            chats = chatDao.getAllChatsOf(currentUser_str);
+//            List<ChatEntity> user_chats = new ArrayList<>();
+//
+//            //in order to get all user's chats
+//            for (ChatEntity chat : chats) {
+//                List<UserEntity> users = chat.getUsers();
+//                for (UserEntity user : users) {
+//                    if (user.getUsername().equals(currentUser_str)) {
+//                        user_chats.add(chat);
+//                    }
+//                }
+//            }
+//            chats = user_chats;
 
             // Call setupRecyclerView() on the main thread
             requireActivity().runOnUiThread(() -> setupRecyclerView(chats));
