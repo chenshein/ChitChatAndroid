@@ -13,8 +13,7 @@ public interface ChatDao {
 
     @Query("SELECT * FROM chat")
     List<ChatEntity> getAllChats();
-    @Query("SELECT * FROM chat WHERE users LIKE '%' || :username || '%'")
-    List<ChatEntity> getAllChatsOf(String username);
+
 
 
     @Query("SELECT * FROM chat WHERE chatIdRoom = :chatId")

@@ -19,6 +19,7 @@ import android.widget.ImageView;
 import com.example.chitchat.Activity.MainActivity;
 import com.example.chitchat.Activity.SearchUserActivity;
 import com.example.chitchat.R;
+import com.example.chitchat.api.UserAPI;
 import com.example.chitchat.data.User.UserDao;
 import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
