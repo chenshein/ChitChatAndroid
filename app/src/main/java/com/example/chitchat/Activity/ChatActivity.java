@@ -12,9 +12,11 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
+import com.example.chitchat.adapter.MessageAdapter;
 import com.example.chitchat.api.ChatAPI;
 import com.example.chitchat.data.Chat.ChatDao;
 import com.example.chitchat.data.Chat.ChatEntity;
@@ -118,13 +120,13 @@ public class ChatActivity extends AppCompatActivity {
             }
             sendMessageToUser(msg);
         });
-
+        // Create the message adapter and set it to the RecyclerView
+        MessageAdapter messageAdapter = new MessageAdapter(messageList, current_user.getUsername());
+        recyclerView.setAdapter(messageAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
     void sendMessageToUser(String message) {
-
-
-
         Message newMessage = new Message(current_user, message);
         messageList.add(newMessage);
 
@@ -166,7 +168,11 @@ public class ChatActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onSuccess(List<ChatRespondGet> chatEntities) {}
+                public void onSuccess(List<ChatRespondGet> chatEntities) {
+                    MessageAdapter messageAdapter = new MessageAdapter(messageList, currentUsername);
+                    recyclerView.setAdapter(messageAdapter);
+                    recyclerView.setLayoutManager(new LinearLayoutManager(ChatActivity.this));
+                }
 
                 @Override
                 public void onFailure(String errorMessage) {}
