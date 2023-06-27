@@ -14,16 +14,25 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.chitchat.Activity.ChatActivity;
 import com.example.chitchat.R;
 import com.example.chitchat.adapter.ChatAdapter;
+import com.example.chitchat.api.ChatAPI;
+import com.example.chitchat.data.CallBackMessages;
 import com.example.chitchat.data.Chat.ChatDao;
 import com.example.chitchat.data.Chat.ChatEntity;
 import com.example.chitchat.data.Chat.ChatItemData;
 import com.example.chitchat.data.Chat.ChatsDatabase;
+import com.example.chitchat.data.Msg.GetMessagesRespo;
 import com.example.chitchat.data.User.UserDao;
 import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickListener {
 
@@ -42,6 +51,7 @@ public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickLis
         }).start();
     }
 
+
     public ChatFragment() {}
 
     @Override
@@ -51,7 +61,6 @@ public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickLis
 
         // Initialize the recyclerView
         recyclerView = rootView.findViewById(R.id.recyclerView_chats);
-
         return rootView;
     }
 
@@ -83,32 +92,46 @@ public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickLis
     }
 
     private void setupRecyclerView(List<ChatEntity> chats) {
-        List<ChatItemData> chatItems = createChatItems(chats);
-
-        // Create and set the adapter
-        adapter = new ChatAdapter(getContext(), chatItems);
-        adapter.setOnItemClickListener(this); // Set the item click listener
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        createChatItems(chats)
+                .thenAccept(chatItems -> {
+                    // Create and set the adapter
+                    adapter = new ChatAdapter(getContext(), chatItems);
+                    adapter.setOnItemClickListener(this); // Set the item click listener
+                    recyclerView.setAdapter(adapter);
+                    recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                })
+                .exceptionally(ex -> {
+                    // Handle any exceptions that occurred during chat item creation
+                    return null;
+                });
     }
 
-    private List<ChatItemData> createChatItems(List<ChatEntity> all_chats) {
-        List<ChatItemData> chatItems = new ArrayList<>();
+    private CompletableFuture<List<ChatItemData>> createChatItems(List<ChatEntity> all_chats) {
+        List<CompletableFuture<ChatItemData>> chatItemFutures = new ArrayList<>();
 
         for (ChatEntity chat : all_chats) {
             for (UserEntity user : chat.getUsers()) {
                 if (!user.getUsername().equals(currentUser_str)) {
                     UserEntity otherUser = user;
-                    chatItems.add(
-                            new ChatItemData(
-                                    otherUser.getUsername(),
-                                    otherUser.getProfilePic(),
-                                    otherUser.getDisplayName(),
-                                    "", ""));
+
+                    CompletableFuture<ChatItemData> chatItemFuture = new CompletableFuture<>();
+                    chatItemFutures.add(chatItemFuture);
+
+                    getMsgApi(chat, (content, time) -> {
+                        chatItemFuture.complete(new ChatItemData(
+                                otherUser.getUsername(),
+                                otherUser.getProfilePic(),
+                                otherUser.getDisplayName(),
+                                content, time));
+                    });
                 }
             }
         }
-        return chatItems;
+
+        return CompletableFuture.allOf(chatItemFutures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> chatItemFutures.stream()
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.toList()));
     }
 
     // Implement the item click listener method
@@ -132,18 +155,50 @@ public class ChatFragment extends Fragment implements ChatAdapter.OnItemClickLis
         startActivity(intent);
     }
 
-    // todo change
-    public void refreshUserList() {
+
+    public void getMsgApi(ChatEntity chat, MessageCallback callback) {
         new Thread(() -> {
-            ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(getContext());
-            ChatDao chatDao = chatsDatabase.chatDao();
-            List<ChatEntity> chats = chatDao.getAllChats();
-            requireActivity().runOnUiThread(() -> {
-                List<ChatItemData> chatItems = createChatItems(chats);
-                if (adapter != null) {
-                    adapter.updateChatItems(chatItems);
+            ChatAPI chatAPI = new ChatAPI();
+            chatAPI.getMessages(chat.getChatIdServer(), current_user, new CallBackMessages() {
+                @Override
+                public void onGetSuccess(List<GetMessagesRespo> messagesRespoList) {
+                    String content, time;
+                    if (messagesRespoList.isEmpty()) {
+                        content = "";
+                        time = "";
+                    } else {
+                        GetMessagesRespo msg = messagesRespoList.get(0);
+                        content = msg.getContent();
+                        time =formatDateTime(msg.getCreated());
+
+
+                    }
+                    callback.onMessageReceived(content, time);
+                }
+
+                @Override
+                public void onGetFailure(String error) {
+                    // Handle the failure case
                 }
             });
         }).start();
+    }
+
+
+    public String formatDateTime(String dateString) {
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+        SimpleDateFormat outputFormat = new SimpleDateFormat("HH:mm | MM/dd", Locale.US);
+
+        try {
+            Date date = inputFormat.parse(dateString);
+            if (date != null) {
+                return outputFormat.format(date);
+            } else {
+                return "";
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }

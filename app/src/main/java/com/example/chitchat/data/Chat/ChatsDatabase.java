@@ -6,10 +6,11 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+import com.example.chitchat.data.Msg.Message;
 import com.example.chitchat.data.User.UserEntity;
 
 
-@Database(entities = {ChatEntity.class, UserEntity.class}, version = 4)
+@Database(entities = {ChatEntity.class, UserEntity.class, Message.class}, version = 5)
 public abstract class ChatsDatabase extends RoomDatabase {
     private static final String dbName = "chats";
     private static ChatsDatabase chatsDatabase;

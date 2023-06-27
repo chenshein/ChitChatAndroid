@@ -18,6 +18,7 @@ import com.example.chitchat.api.ChatAPI;
 import com.example.chitchat.data.Chat.ChatDao;
 import com.example.chitchat.data.Chat.ChatEntity;
 import com.example.chitchat.data.Chat.ChatRespondGet;
+import com.example.chitchat.data.Chat.ChatResponse;
 import com.example.chitchat.data.Chat.ChatsDatabase;
 import com.example.chitchat.data.ChatCallback;
 import com.example.chitchat.data.Msg.Message;
@@ -83,43 +84,58 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     //when we click a user that we want to add to our chats
     private void onItemClick(View itemView, UserEntity user) {
 
-        Context context = itemView.getContext();
-        Intent intent = new Intent(context, AllChatsActivity.class);
 
-        // Pass the current user back to see all his chats with the new adding chat
-        intent.putExtra("username", curr_username);
 
         Runnable asyncRunnable = () -> {
-            UserDatabase userDatabase = UserDatabase.getUserDatabase(context);
+            UserDatabase userDatabase = UserDatabase.getUserDatabase(itemView.getContext());
             UserDao userDao = userDatabase.userDao();
             //get current user Entity with password in order to use it for the token
             UserEntity.UserWithPws currentUser = userDao.get(curr_username);
 
             // in order to add a new chat
             if (currentUser != null) {
-                //TODO in to be from db server to know if the chat exist
                 ChatAPI chatAPI = new ChatAPI();
-                chatAPI.addChat(currentUser, user.getUsername(), new ChatCallback() {
+                chatAPI.get(currentUser, new ChatCallback() {
                     @Override
-                    public void onSuccessRes(String returnVal) { // chat added !! returnVal is the id that the server return
-                        if (!returnVal.equals("failed")) {
-                            //create the chat in ROOM db
-                            new Thread(() -> {
-                                List<UserEntity> list = new ArrayList<>();
-                                list.add((UserEntity) currentUser);
-                                list.add(user);
-                                List<Message> messageList = new ArrayList<>();
-
-                                ChatEntity new_chat = new ChatEntity(returnVal, list, messageList, "", new Timestamp(System.currentTimeMillis()));
-                                ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(context);
-                                ChatDao chatDao = chatsDatabase.chatDao();
-                                chatDao.createChat(new_chat);
-                            }).start();
-                        }
-                    }
+                    public void onSuccessRes(String val) {}
 
                     @Override
                     public void onSuccess(List<ChatRespondGet> chatEntities) {
+                        for (ChatRespondGet chat : chatEntities ){
+                            if(user.getUsername().equals(chat.getUser().getUsername())){
+                                return;
+                            }
+                        }
+                        chatAPI.addChat(currentUser, user.getUsername(), new ChatCallback() {
+                            @Override
+                            public void onSuccessRes(String returnVal) { // chat added !! returnVal is the id that the server return
+                                if (!returnVal.equals("failed")) {
+                                    //create the chat in ROOM db
+                                    new Thread(() -> {
+                                        List<UserEntity> list = new ArrayList<>();
+                                        list.add((UserEntity) currentUser);
+                                        list.add(user);
+                                        List<Message> messageList = new ArrayList<>();
+
+                                        ChatEntity new_chat = new ChatEntity(returnVal, list, messageList, "", new Timestamp(System.currentTimeMillis()));
+                                        ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(itemView.getContext());
+                                        ChatDao chatDao = chatsDatabase.chatDao();
+                                        chatDao.createChat(new_chat);
+                                    }).start();
+                                }
+                            }
+
+                            @Override
+                            public void onSuccess(List<ChatRespondGet> chatEntities) {
+                            }
+
+                            @Override
+                            public void onFailure(String errorMessage) {
+
+                            }
+                        });
+
+
                     }
 
                     @Override
@@ -129,12 +145,16 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
                 });
 
 
+
             }
+            Context context = itemView.getContext();
+            Intent intent = new Intent(context, AllChatsActivity.class);
 
-
-        };
+            // Pass the current user back to see all his chats with the new adding chat
+            intent.putExtra("username", curr_username);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
+        };
 
         executor.execute(asyncRunnable);
     }
@@ -166,9 +186,6 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
         users = list_without_curr;
         notifyDataSetChanged();
     }
-
-
-
 
 
     @Override

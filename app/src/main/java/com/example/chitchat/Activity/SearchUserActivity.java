@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
 import com.example.chitchat.adapter.UsersListAdapterAddChat;
+import com.example.chitchat.api.ChatAPI;
 import com.example.chitchat.api.UserAPI;
 import com.example.chitchat.data.GetUserCallback;
 import com.example.chitchat.data.LoginCallback;
@@ -70,6 +71,7 @@ public class SearchUserActivity extends AppCompatActivity {
                 return; // Exit the method to prevent further execution
             }
 
+
             new Thread(() -> {
                 UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
                 UserDao userDao = userDatabase.userDao();
@@ -79,21 +81,6 @@ public class SearchUserActivity extends AppCompatActivity {
         });
     }
 
-
-//        searchButton.setOnClickListener(v -> {
-//            String searchUser = searchInput.getText().toString();
-//            //if the user that we want to add is equals to the current user name - not possible
-//            if(searchUser.equals(extras.getString("username"))){
-//                Toast.makeText(SearchUserActivity.this,"You can't add yourself :)",Toast.LENGTH_SHORT).show();
-//            }
-//            new Thread(()->{
-//                UserDatabase userDatabase= UserDatabase.getUserDatabase(this);
-//                UserDao userDao = userDatabase.userDao();
-//                UserEntity.UserWithPws searchUserEntity = userDao.get(searchUser);
-//                getUserFromAPI(searchUserEntity);
-//            }).start();
-//        });
-//    }
 
     private void getUserFromAPI(UserEntity.UserWithPws searchUser){
         UserAPI api = new UserAPI();
@@ -115,39 +102,6 @@ public class SearchUserActivity extends AppCompatActivity {
         });
 
     }
-
-
-
-//    private void getUserFromDB(String searchUser) {
-//        Thread thread = new Thread(() -> {
-//            UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
-//            UserDao userDao = userDatabase.userDao();
-//            UserEntity.UserWithPws user = userDao.get(searchUser);
-//            runOnUiThread(() -> {
-//                if (user == null) {
-//                    Thread usersThread = new Thread(() -> {
-//                        List<String> users = performDatabaseQuery();
-//                        runOnUiThread(() -> setupSearchRecyclerView(users));
-//                    });
-//                    usersThread.start();
-//                } else {
-//                    adapter.setUser(user);
-//                }
-//            });
-//        });
-//        thread.start();
-//    }
-//
-//    private List<String> performDatabaseQuery() {
-//        UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
-//        UserDao userDao = userDatabase.userDao();
-////        return userDao.getAllUsers();
-//        return userDao.getAllUsersName();
-//    }
-//
-//    private void setupSearchRecyclerView(List<String> userList) {
-//        adapter.setUsers(userList);
-//    }
 
 
 

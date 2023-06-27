@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
@@ -27,6 +28,7 @@ import androidx.appcompat.widget.TooltipCompat;
 
 import com.example.chitchat.R;
 import com.example.chitchat.api.UserAPI;
+import com.example.chitchat.data.GetUserCallback;
 import com.example.chitchat.data.User.UserDao;
 import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
@@ -123,25 +125,39 @@ public class SignUpActivity extends AppCompatActivity {
                                         Toast.makeText(SignUpActivity.this, "Username already exists", Toast.LENGTH_SHORT).show();
                                     }
                                 });
-                            } else {
-                                if(base64Pic.equals("")){
+                            } else { // not on local - check if in server API
+                                if (base64Pic.equals("")) {
                                     base64Pic = getDefaultAvatarBase64(); // Set base64Pic to the default avatar
-
                                 }
 
-                                UserEntity.UserWithPws new_user = new UserEntity.UserWithPws(Username, Password, DisplayName,base64Pic);
+                                UserEntity.UserWithPws new_user = new UserEntity.UserWithPws(Username, Password, DisplayName, base64Pic);
                                 UserAPI userAPI = new UserAPI();
-                                userAPI.registerUser(new_user); //add to database
-                                userDao.insert(new_user); // add to local database
-                                handler.post(new Runnable() {
+                                userAPI.getUser(new_user, new GetUserCallback() {
                                     @Override
-                                    public void run() {
-                                        Toast.makeText(SignUpActivity.this, "User registered!", Toast.LENGTH_SHORT).show();
+                                    public void onGetSuccess(UserEntity user) { // user is in the server db but not on local
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(SignUpActivity.this, "Username already exists", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    }
 
+                                    @Override
+                                    public void onGetFailure(String error) { // not on server or local
+                                        // add to database using AsyncTask
+                                        new InsertUserAsyncTask(userDao).execute(new_user);
+                                        userAPI.registerUser(new_user);
                                         // Go to LoginActivity after successful registration
-                                        Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
-                                        startActivity(intent);
-                                        finish();
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(SignUpActivity.this, "User registered!", Toast.LENGTH_SHORT).show();
+                                                Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
+                                                startActivity(intent);
+                                                finish();
+                                            }
+                                        });
                                     }
                                 });
                             }
@@ -152,12 +168,25 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
+    private static class InsertUserAsyncTask extends AsyncTask<UserEntity.UserWithPws, Void, Void> {
+        private UserDao userDao;
 
+        InsertUserAsyncTask(UserDao userDao) {
+            this.userDao = userDao;
+        }
+
+        @Override
+        protected Void doInBackground(UserEntity.UserWithPws... users) {
+            userDao.insert(users[0]);
+            return null;
+        }
+    }
 
     private boolean check_if_user_exist(String username) {
         UserEntity.UserWithPws userEntity = userDao.get(username);
         return userEntity != null;
     }
+
 
 
     private String getDefaultAvatarBase64() {

@@ -3,6 +3,7 @@ package com.example.chitchat.api;
 import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatResponse;
 import com.example.chitchat.data.Chat.ChatUser;
+import com.example.chitchat.data.Msg.GetMessagesRespo;
 import com.example.chitchat.data.Msg.Message;
 import com.example.chitchat.data.Msg.MessageRequest;
 import com.example.chitchat.data.User.UserPwsName;
@@ -28,10 +29,10 @@ public interface ChatServiceAPI {
     Call<Void> deleteChat(@Path("id") int id);
 
     @POST("Chats/{id}/Messages")
-    Call<Void> createMsg(@Header("Authorization") String token, @Path("id") String id, @Body MessageRequest message);
+    Call<GetMessagesRespo> createMsg(@Header("Authorization") String token, @Path("id") String id, @Body MessageRequest message);
 
     @GET("Chats/{id}/Messages")
-    Call<List<Message>> getMessages(@Path("id") int id);
+    Call<List<GetMessagesRespo>> getMessages(@Header("Authorization") String token,@Path("id") String id);
     @POST("Tokens")
     Call<String> getToken(@Body UserPwsName user);
 }

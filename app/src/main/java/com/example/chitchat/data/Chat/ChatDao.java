@@ -6,6 +6,8 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 
+import com.example.chitchat.data.Msg.Message;
+
 import java.util.List;
 
 @Dao
@@ -25,4 +27,11 @@ public interface ChatDao {
     void updateChat(ChatEntity chat);
     @Delete
     void deleteChat(ChatEntity chat);
+
+    @Insert
+    void insertMessage(Message message);
+
+    @Query("SELECT * FROM message WHERE chatIdRoom = :chatId")
+    List<Message> getMessagesByChatId(int chatId);
+
 }
