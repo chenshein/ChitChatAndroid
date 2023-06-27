@@ -120,6 +120,7 @@ By incorporating these features, the Chat Screen provides a seamless and interac
   This assignment supports what was previously supported besides deleting chats, you can add users and conduct conversations with them through the Android application.
 There is also a settings screen so that you can change the server path and switch to night mode
 The application supports the English language only
+-after adding a new chat with a user , in order to see the changes you need to pass the "proflie" on the menu and then go back to the "chats" 
 
 ##  Authors
 
