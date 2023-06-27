@@ -5,7 +5,7 @@
 
 
     <TextView
-        android:id="@+id/msgsendertyp"
+        android:id="@+id/msg_reciver"
         android:layout_width="100dp"
         android:layout_height="30dp"
         android:layout_centerVertical="true"
@@ -13,7 +13,7 @@
         android:layout_marginTop="5dp"
         android:layout_marginEnd="5dp"
         android:layout_marginBottom="5dp"
-        android:background="@drawable/sender_shape"
+        android:background="@drawable/reciver_shape"
         android:padding="7dp"
         android:textColor="@color/black"
         android:textStyle="bold" />

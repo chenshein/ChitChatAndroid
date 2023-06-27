@@ -82,6 +82,16 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     private Executor executor = Executors.newSingleThreadExecutor();
     //when we click a user that we want to add to our chats
     private void onItemClick(View itemView, UserEntity user) {
+        new Thread(()->{
+            UserDatabase userDatabase = UserDatabase.getUserDatabase(itemView.getContext());
+            UserDao userDao = userDatabase.userDao();
+            UserEntity.UserWithPws userEntity = userDao.get(user.getUsername());
+            if(userEntity==null){
+                add_chat_local_db(user, itemView.getContext());
+            }
+        }).start();
+
+
 
         Context context = itemView.getContext();
         Intent intent = new Intent(context, AllChatsActivity.class);
@@ -195,8 +205,13 @@ public class UsersListAdapterAddChat extends RecyclerView.Adapter<UsersListAdapt
     }
 
 
-    private void add_chat_local_db(UserEntity currentUser, UserEntity user, Context context){
-
+    private void add_chat_local_db(UserEntity user, Context context){
+        new Thread(()->{
+            UserEntity.UserWithPws userWithPws = new UserEntity.UserWithPws(user.getUsername(),null,user.getDisplayName(),user.getProfilePic());
+            UserDatabase userDatabase = UserDatabase.getUserDatabase(context);
+            UserDao userDao = userDatabase.userDao();
+            userDao.insert(userWithPws);
+        }).start();
 
     }
 }

@@ -97,6 +97,8 @@ public class LoginActivity extends AppCompatActivity {
                                         // Handle the successful login and token retrieval
                                         Intent intent = new Intent(LoginActivity.this, AllChatsActivity.class);
                                         intent.putExtra("username",Username); //pass the username
+                                        intent.putExtra("curr_password",Password);
+
                                         startActivity(intent);
                                         finish();
                                     }

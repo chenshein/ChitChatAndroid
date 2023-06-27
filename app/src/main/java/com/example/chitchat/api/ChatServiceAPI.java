@@ -26,7 +26,7 @@ public interface ChatServiceAPI {
     Call<ChatResponse> createChat(@Header("Authorization") String token, @Body ChatUser username);
 
     @DELETE("Chats/{id}")
-    Call<Void> deleteChat(@Path("id") int id);
+    Call<String> deleteChat(@Header("Authorization") String token,@Path("id") String id);
 
     @POST("Chats/{id}/Messages")
     Call<GetMessagesRespo> createMsg(@Header("Authorization") String token, @Path("id") String id, @Body MessageRequest message);

@@ -1,10 +1,12 @@
 package com.example.chitchat.data.Chat;
 
+import com.example.chitchat.data.User.UserEntity;
+
 public class ChatResponse {
     private String id;
-    private ChatUser user;
+    private UserEntity user;
 
-    public ChatResponse(String id, ChatUser user) {
+    public ChatResponse(String id, UserEntity user) {
         this.id = id;
         this.user = user;
     }
@@ -17,11 +19,11 @@ public class ChatResponse {
         this.id = id;
     }
 
-    public ChatUser getUser() {
+    public UserEntity getUser() {
         return user;
     }
 
-    public void setUser(ChatUser user) {
+    public void setUser(UserEntity user) {
         this.user = user;
     }
 }

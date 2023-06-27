@@ -11,7 +11,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
 import com.example.chitchat.adapter.UsersListAdapterAddChat;
+import com.example.chitchat.api.ChatAPI;
 import com.example.chitchat.api.UserAPI;
+import com.example.chitchat.data.Chat.ChatDao;
+import com.example.chitchat.data.Chat.ChatRespondGet;
+import com.example.chitchat.data.Chat.ChatsDatabase;
+import com.example.chitchat.data.ChatCallback;
+import com.example.chitchat.data.ChatForSearchCallback;
 import com.example.chitchat.data.GetUserCallback;
 import com.example.chitchat.data.LoginCallback;
 import com.example.chitchat.data.User.UserDao;
@@ -74,6 +80,43 @@ public class SearchUserActivity extends AppCompatActivity {
                 UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
                 UserDao userDao = userDatabase.userDao();
                 UserEntity.UserWithPws searchUserEntity = userDao.get(searchUser);
+                UserEntity.UserWithPws curr_user_entity = userDao.get(currentUser);
+
+                if(searchUserEntity==null){ //no in the local db, but maybe in server db
+                    String curr_password = extras.getString("curr_password");
+                    new Thread(()->{
+                        UserAPI userAPI = new UserAPI();
+                        userAPI.login(currentUser, curr_password, new LoginCallback() {
+                            @Override
+                            public void onLoginSuccess(String token) {
+                                //the user exist in server db
+                                ChatAPI chatAPI = new ChatAPI();
+                                chatAPI.addChatWithTokenForSearch(token, searchUser, new ChatForSearchCallback() {
+                                    @Override
+                                    public void onGetSuccess(UserEntity user, String id) {
+                                        UserEntity new_user = new UserEntity(user.getUsername(),user.getDisplayName(),user.getProfilePic());
+                                        chatAPI.delete(token,id);
+                                        adapter.setUser(new_user);
+                                    }
+
+                                    @Override
+                                    public void onGetFailure(String error) {
+                                        runOnUiThread(() -> {
+                                            Toast.makeText(SearchUserActivity.this, "User not found", Toast.LENGTH_SHORT).show();
+                                        });
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onLoginFailure(String error) {
+                                runOnUiThread(() -> {
+                                    Toast.makeText(SearchUserActivity.this, "User not found", Toast.LENGTH_SHORT).show();
+                                });
+                            }
+                        });
+                    }).start();
+                };
                 getUserFromAPI(searchUserEntity);
             }).start();
         });
@@ -100,39 +143,6 @@ public class SearchUserActivity extends AppCompatActivity {
         });
 
     }
-
-
-
-//    private void getUserFromDB(String searchUser) {
-//        Thread thread = new Thread(() -> {
-//            UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
-//            UserDao userDao = userDatabase.userDao();
-//            UserEntity.UserWithPws user = userDao.get(searchUser);
-//            runOnUiThread(() -> {
-//                if (user == null) {
-//                    Thread usersThread = new Thread(() -> {
-//                        List<String> users = performDatabaseQuery();
-//                        runOnUiThread(() -> setupSearchRecyclerView(users));
-//                    });
-//                    usersThread.start();
-//                } else {
-//                    adapter.setUser(user);
-//                }
-//            });
-//        });
-//        thread.start();
-//    }
-//
-//    private List<String> performDatabaseQuery() {
-//        UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
-//        UserDao userDao = userDatabase.userDao();
-////        return userDao.getAllUsers();
-//        return userDao.getAllUsersName();
-//    }
-//
-//    private void setupSearchRecyclerView(List<String> userList) {
-//        adapter.setUsers(userList);
-//    }
 
 
 

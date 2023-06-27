@@ -28,6 +28,8 @@ public interface UserDao {
 
     @Insert
     void insert(UserEntity.UserWithPws new_user);
+    @Insert
+    void insertWithoutPassword(UserEntity new_user);
     @Transaction
     @Query("SELECT * FROM user WHERE username = :username")
     UserEntity getUserWithFriends(String username);

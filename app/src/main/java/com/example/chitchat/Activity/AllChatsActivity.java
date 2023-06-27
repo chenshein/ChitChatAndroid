@@ -39,6 +39,7 @@ public class AllChatsActivity extends AppCompatActivity {
         addButton.setOnClickListener((v) -> {
             Intent intent = new Intent(this, SearchUserActivity.class);
             intent.putExtra("username", extras.getString("username")); //pass the username
+            intent.putExtra("curr_password",extras.getString("curr_password"));
             startActivity(intent);
         });
 

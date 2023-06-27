@@ -7,6 +7,8 @@ import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatResponse;
 import com.example.chitchat.data.Chat.ChatUser;
 import com.example.chitchat.data.ChatCallback;
+import com.example.chitchat.data.ChatForSearchCallback;
+import com.example.chitchat.data.GetUserCallback;
 import com.example.chitchat.data.Msg.GetMessagesRespo;
 import com.example.chitchat.data.Msg.MessageRequest;
 import com.example.chitchat.data.User.UserEntity;
@@ -179,9 +181,32 @@ public class ChatAPI {
         });
     }
 
+    public void addChatWithTokenForSearch(String token, String usernameToAdd, ChatForSearchCallback callback) {
+        String bearerToken = "Bearer " + token;
+        ChatUser chatUser = new ChatUser(usernameToAdd);
+        Call<ChatResponse> call = chatServiceAPI.createChat(bearerToken, chatUser);
+        call.enqueue(new Callback<ChatResponse>() {
+            @Override
+            public void onResponse(Call<ChatResponse> call, Response<ChatResponse> response) {
+                if (response.isSuccessful()) {
+                   ChatResponse chatResponse = response.body();
+                   UserEntity user = chatResponse.getUser();
+                   String chatId = chatResponse.getId();
+                   callback.onGetSuccess(user,chatId);
 
+                } else {
+                    callback.onGetFailure("failed");
+                }
+            }
 
+            @Override
+            public void onFailure(Call<ChatResponse> call, Throwable t) {
+                String error = "Chat creation failed. Error: " + t.getMessage();
+                System.out.println(error);
+            }
+        });
 
+    }
 
 
     public void addMsg(UserEntity.UserWithPws currentUser, String msg, String chatId, CallBackMessages callback) {
@@ -228,6 +253,30 @@ public class ChatAPI {
 
 
     public void getChatById(int chat_id){}
+
+
+
+    public void delete(String token,String id){
+        String bearerToken = "Bearer " + token;
+
+        Call<String> delete = chatServiceAPI.deleteChat(bearerToken,id);
+
+        delete.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                System.out.println("chat deleted");
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                System.out.println("chat not deleted");
+
+            }
+        });
+
+
+
+    }
 
 
 }
