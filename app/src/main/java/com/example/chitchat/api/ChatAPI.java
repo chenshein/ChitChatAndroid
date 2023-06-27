@@ -2,14 +2,17 @@ package com.example.chitchat.api;
 
 import com.example.chitchat.MyApplication;
 import com.example.chitchat.R;
+import com.example.chitchat.data.CallBackMessages;
 import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatResponse;
 import com.example.chitchat.data.Chat.ChatUser;
 import com.example.chitchat.data.ChatCallback;
+import com.example.chitchat.data.Msg.GetMessagesRespo;
 import com.example.chitchat.data.Msg.MessageRequest;
 import com.example.chitchat.data.User.UserEntity;
 import com.example.chitchat.data.User.UserPwsName;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -86,6 +89,37 @@ public class ChatAPI {
     }
 
 
+    public void getMessages(String chatIdServer,UserEntity.UserWithPws current_user, CallBackMessages callback){
+        UserPwsName userPwsName = new UserPwsName(current_user.getUsername(), current_user.getPassword());
+        Call<String> tokenCall = chatServiceAPI.getToken(userPwsName);
+
+        tokenCall.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> tokenCall, Response<String> response) {
+                String token = response.body();
+                String bearerToken = "Bearer " + token;
+                Call<List<GetMessagesRespo>> call = chatServiceAPI.getMessages(bearerToken,chatIdServer);
+                call.enqueue(new Callback<List<GetMessagesRespo>>() {
+                    @Override
+                    public void onResponse(Call<List<GetMessagesRespo>> call, Response<List<GetMessagesRespo>> response) {
+                        List<GetMessagesRespo> messagesRespoList = response.body();
+                        callback.onGetSuccess(messagesRespoList);
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<GetMessagesRespo>> call, Throwable t) {
+                        callback.onGetFailure("failed");
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+
+            }
+        });
+    }
+
     //add chat
     public void addChat(UserEntity.UserWithPws currentUser, String usernameToAdd, ChatCallback callback) {
         UserPwsName userPwsName = new UserPwsName(currentUser.getUsername(), currentUser.getPassword());
@@ -150,7 +184,7 @@ public class ChatAPI {
 
 
 
-    public void addMsg(UserEntity.UserWithPws currentUser, String msg, String chatId, ChatCallback callback) {
+    public void addMsg(UserEntity.UserWithPws currentUser, String msg, String chatId, CallBackMessages callback) {
         UserPwsName userPwsName = new UserPwsName(currentUser.getUsername(), currentUser.getPassword());
         Call<String> tokenCall = chatServiceAPI.getToken(userPwsName);
 
@@ -163,38 +197,30 @@ public class ChatAPI {
                     System.out.println("bearerToken: " + bearerToken);
 
                     MessageRequest messageRequest = new MessageRequest(msg);
-                    Call<Void> call = chatServiceAPI.createMsg(bearerToken, chatId, messageRequest);
+                    Call<GetMessagesRespo> call = chatServiceAPI.createMsg(bearerToken, chatId, messageRequest);
 
-                    call.enqueue(new Callback<Void>() {
+                    call.enqueue(new Callback<GetMessagesRespo>() {
                         @Override
-                        public void onResponse(Call<Void> call, Response<Void> response) {
-                            if (response.isSuccessful()) {
-                                callback.onSuccessRes("true");
-                            } else {
-                                String error = "MSG creation failed. Response code: " + response.code() + " Error: " + response.errorBody().toString() + " Message: " + response.message();
-                                System.out.println(error);
-                                callback.onFailure(error);
-                            }
+                        public void onResponse(Call<GetMessagesRespo> call, Response<GetMessagesRespo> response) {
+                            List<GetMessagesRespo> messagesRespo = new ArrayList<>();
+                            messagesRespo.add(response.body());
+                            callback.onGetSuccess(messagesRespo);
                         }
 
                         @Override
-                        public void onFailure(Call<Void> call, Throwable t) {
+                        public void onFailure(Call<GetMessagesRespo> call, Throwable t) {
                             String error = "MSG creation failed. Error: " + t.getMessage();
                             System.out.println(error);
-                            callback.onFailure(error);
+                            callback.onGetFailure(error);
                         }
                     });
-                } else {
-                    String errorBody = response.errorBody().toString();
-                    System.out.println("Response unsuccessful. Error body: " + errorBody);
-                    callback.onFailure(errorBody);
                 }
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
                 System.out.println("Token not created");
-                callback.onFailure("Token not created");
+                callback.onGetFailure("Token not created");
             }
         });
     }

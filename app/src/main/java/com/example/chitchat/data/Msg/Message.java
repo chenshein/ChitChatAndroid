@@ -8,19 +8,50 @@ import com.example.chitchat.data.User.UserEntity;
 
 @Entity(tableName = "message")
 public class Message {
-    @PrimaryKey
-    public int messageId;
+    @PrimaryKey(autoGenerate = true)
+    public int messageIdRoom;
+    private String msgIdServer;
+    private int chatIdRoom;
+    private String chatIdServer;
+
     @Embedded
     public UserEntity sender;
     public String content;
     public String created;
 
-    public int getMessageId() {
-        return messageId;
+    public Message(String msgIdServer, int chatIdRoom, String chatIdServer, UserEntity sender, String content, String created) {
+
+        this.msgIdServer = msgIdServer;
+        this.chatIdRoom = chatIdRoom;
+        this.chatIdServer = chatIdServer;
+        this.sender = sender;
+        this.content = content;
+        this.created = created;
+    }
+    public int getChatIdRoom() {
+        return chatIdRoom;
     }
 
-    public void setMessageId(int messageId) {
-        this.messageId = messageId;
+    public void setChatIdRoom(int chatIdRoom) {
+        this.chatIdRoom = chatIdRoom;
+    }
+
+    public String getChatIdServer() {
+        return chatIdServer;
+    }
+
+    public void setChatIdServer(String chatIdServer) {
+        this.chatIdServer = chatIdServer;
+    }
+
+
+
+    public int getMessageIdRoom() {
+        return messageIdRoom;
+    }
+
+    public void setMessageIdRoom(int messageIdRoom) {
+        this.messageIdRoom = messageIdRoom;
     }
 
     public UserEntity getSender() {
@@ -47,9 +78,21 @@ public class Message {
         this.created = created;
     }
 
-    public Message(UserEntity sender, String content) {
-        this.sender = sender;
-        this.content = content;
 
+
+    public int getChatId() {
+        return chatIdRoom;
+    }
+
+    public void setChatId(int chatId) {
+        this.chatIdRoom = chatId;
+    }
+
+    public String getMsgIdServer() {
+        return msgIdServer;
+    }
+
+    public void setMsgIdServer(String msgIdServer) {
+        this.msgIdServer = msgIdServer;
     }
 }
