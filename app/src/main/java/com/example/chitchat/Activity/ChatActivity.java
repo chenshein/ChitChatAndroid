@@ -12,7 +12,6 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -50,6 +49,8 @@ public class ChatActivity extends AppCompatActivity {
     String otherUserDisplayName;
     String chatIdServer;
     int chatIdRoom;
+
+    private RecyclerView recyclerView;
 
     List<Message> messageList = new ArrayList<>();
 
@@ -106,8 +107,8 @@ public class ChatActivity extends AppCompatActivity {
 
         // Call the modified findChatId function with the callback
         findChatId(currentUsername, otherUserName, () -> {
-
-
+            System.out.println("messageList size: " + messageList.size());
+            setupRecyclerView();
             // Set the user's photo to the CircleImageView
             Bitmap userPhotoBitmap = decodeBase64ToBitmap(otherUserImg);
             if (userPhotoBitmap != null) {
@@ -122,6 +123,15 @@ public class ChatActivity extends AppCompatActivity {
 
 
         });
+    }
+
+    private void setupRecyclerView() {
+        // Create and set the adapter
+        MessageAdapter adapter;
+        adapter = new MessageAdapter(this, messageList, current_user.getUsername());
+        recyclerView = findViewById(R.id.recycler_msg);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
     private void getAllMsg(){
@@ -199,16 +209,9 @@ public class ChatActivity extends AppCompatActivity {
                             ChatEntity chatEntity = chatDao.getChatById(chatIdRoom);
                             if (chatEntity != null) {
                                 messageList = chatEntity.getMessages();
+                                System.out.println("messageList size: " + messageList.size());
                             }
-
-                            // Invoke the callback once the chat ID is found and messages are retrieved
-//                            runOnUiThread(() -> {
-//                                // Notify the adapter of the data changes
-//                                messageAdapter.notifyDataSetChanged();
-//
-//                                // Invoke the callback
-//                                callback.run();
-//                            });
+                            runOnUiThread(callback);
                         }).start();
                     }
 
@@ -257,7 +260,7 @@ public class ChatActivity extends AppCompatActivity {
 
                         // Clear the input message EditText
                         input_msg.setText("");
-
+                        setupRecyclerView();
                     });
                 }
 

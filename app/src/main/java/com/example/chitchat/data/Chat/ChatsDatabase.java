@@ -10,7 +10,7 @@ import com.example.chitchat.data.Msg.Message;
 import com.example.chitchat.data.User.UserEntity;
 
 
-@Database(entities = {ChatEntity.class, UserEntity.class, Message.class}, version = 4)
+@Database(entities = {ChatEntity.class, UserEntity.class, Message.class}, version = 5)
 public abstract class ChatsDatabase extends RoomDatabase {
     private static final String dbName = "chats";
     private static ChatsDatabase chatsDatabase;
