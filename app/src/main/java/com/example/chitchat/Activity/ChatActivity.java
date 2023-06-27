@@ -31,6 +31,7 @@ import com.example.chitchat.data.User.UserDatabase;
 import com.example.chitchat.data.User.UserEntity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executor;
@@ -90,7 +91,7 @@ public class ChatActivity extends AppCompatActivity {
 
         recyclerViewMsg = findViewById(R.id.recycler_msg);
 
-       // messageAdapter= new MessageAdapter(this,messageList,current_user.getUsername());
+        // messageAdapter= new MessageAdapter(this,messageList,current_user.getUsername());
         recyclerViewMsg.setAdapter(messageAdapter);
         recyclerViewMsg.setLayoutManager(new LinearLayoutManager(this));
 
@@ -107,14 +108,12 @@ public class ChatActivity extends AppCompatActivity {
 
         // Call the modified findChatId function with the callback
         findChatId(currentUsername, otherUserName, () -> {
-            System.out.println("messageList size: " + messageList.size());
             setupRecyclerView();
             // Set the user's photo to the CircleImageView
             Bitmap userPhotoBitmap = decodeBase64ToBitmap(otherUserImg);
             if (userPhotoBitmap != null) {
                 runOnUiThread(() -> otherImg.setImageBitmap(userPhotoBitmap));
             }
-            // Rest of the code...
 
             //go back to chats view
             back_btn.setOnClickListener(v -> {
@@ -127,28 +126,32 @@ public class ChatActivity extends AppCompatActivity {
 
     private void setupRecyclerView() {
         // Create and set the adapter
-        MessageAdapter adapter;
-        adapter = new MessageAdapter(this, messageList, current_user.getUsername());
+        messageAdapter = new MessageAdapter(this, messageList, current_user.getUsername());
         recyclerView = findViewById(R.id.recycler_msg);
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(messageAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    private void getAllMsg(){
-        new Thread(()->{
-            ChatAPI chatAPI =  new ChatAPI();
+    private void getAllMsg() {
+        new Thread(() -> {
+            ChatAPI chatAPI = new ChatAPI();
             chatAPI.getMessages(chatIdServer, current_user, new CallBackMessages() {
                 @Override
                 public void onGetSuccess(List<GetMessagesRespo> messagesRespoList) {
-                    for (GetMessagesRespo messagesRespo: messagesRespoList){
+                    for (GetMessagesRespo messagesRespo : messagesRespoList) {
                         UserEntity sender = messagesRespo.getSender();
                         System.out.println(sender);
                         String content = messagesRespo.getContent();
                         String created = messagesRespo.getCreated();
                         String id = messagesRespo.getId();
-                        Message message = new Message(id,chatIdRoom,chatIdServer,sender,content,created);
+                        Message message = new Message(id, chatIdRoom, chatIdServer, sender, content, created);
                         messageList.add(message);
                     }
+                    // reverse the list to show the latest message at the bottom
+                    Collections.reverse(messageList);
+                    runOnUiThread(() -> {
+                        messageAdapter.notifyDataSetChanged();
+                    });
                 }
 
                 @Override
@@ -174,7 +177,8 @@ public class ChatActivity extends AppCompatActivity {
 
                 chatAPI.get(currentUserEntity, new ChatCallback() {
                     @Override
-                    public void onSuccessRes(String val) {}
+                    public void onSuccessRes(String val) {
+                    }
 
                     @Override
                     public void onSuccess(List<ChatRespondGet> allUserChats) {
@@ -248,7 +252,7 @@ public class ChatActivity extends AppCompatActivity {
                         String created = messagesRespoList.get(0).getCreated();
                         String id = messagesRespoList.get(0).getId();
                         // Create a new Message instance with the current user and message
-                        Message newMessage = new Message(id,chatIdRoom,chatIdServer,sender,content,created);
+                        Message newMessage = new Message(id, chatIdRoom, chatIdServer, sender, content, created);
                         messageList.add(newMessage);
 
 
@@ -265,11 +269,11 @@ public class ChatActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onGetFailure(String error) {}
+                public void onGetFailure(String error) {
+                }
             });
         }).start();
     }
-
 
 
     public void updateMessages(Message newMessage) {
