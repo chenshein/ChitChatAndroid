@@ -150,7 +150,9 @@ public class ChatActivity extends AppCompatActivity {
                     // reverse the list to show the latest message at the bottom
                     Collections.reverse(messageList);
                     runOnUiThread(() -> {
-                        messageAdapter.notifyDataSetChanged();
+                        if(messageAdapter!=null) {
+                            messageAdapter.notifyDataSetChanged();
+                        }
                     });
                 }
 

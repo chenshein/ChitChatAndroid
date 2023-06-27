@@ -73,13 +73,14 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ChatActi
         ChatActivityViewHolder(View itemView) {
             super(itemView);
             messageText = itemView.findViewById(R.id.msgsendertyp);
-//            messageTime = itemView.findViewById(R.id.messageTime);
+            messageTime = itemView.findViewById(R.id.dateText);
         }
 
         void bindMessage(Message message) {
+
             messageText.setText(message.getContent());
-//            String time = formatDateTime(message.getCreated());
-//            messageTime.setText(time);
+            String time = formatDateTime(message.getCreated());
+            messageTime.setText(time);
         }
         public String formatDateTime(String dateString) {
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);

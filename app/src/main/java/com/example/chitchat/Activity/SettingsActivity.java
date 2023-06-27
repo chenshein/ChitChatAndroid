@@ -69,9 +69,11 @@ public class SettingsActivity extends AppCompatActivity {
         if (selectedTheme == R.id.radioDark) {
             // Set dark theme
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+
         } else {
             // Set light theme
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
         }
 
         // Restart the activity to apply the theme changes
