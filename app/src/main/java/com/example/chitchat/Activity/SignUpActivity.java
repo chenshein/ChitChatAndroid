@@ -70,10 +70,6 @@ public class SignUpActivity extends AppCompatActivity {
         confirm_password = findViewById(R.id.signUp_confirm_password);
         displayName = findViewById(R.id.signUp_displayName);
         photo_upload = findViewById(R.id.profileImage);
-//
-//        TooltipCompat.setTooltipText(username, "Enter at least 3 characters, and at most 16.");
-//        TooltipCompat.setTooltipText(password, "Enter at least 8 characters that contains at least one letter and one number.");
-//        TooltipCompat.setTooltipText(displayName, "Enter at least 3 characters, and at most 16.");
 
         photo_upload.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,7 +126,9 @@ public class SignUpActivity extends AppCompatActivity {
                             } else {
                                 if(base64Pic.equals("")){
                                     base64Pic = getDefaultAvatarBase64(); // Set base64Pic to the default avatar
+
                                 }
+
                                 UserEntity.UserWithPws new_user = new UserEntity.UserWithPws(Username, Password, DisplayName,base64Pic);
                                 UserAPI userAPI = new UserAPI();
                                 userAPI.registerUser(new_user); //add to database

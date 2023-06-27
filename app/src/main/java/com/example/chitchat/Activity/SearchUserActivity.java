@@ -80,21 +80,6 @@ public class SearchUserActivity extends AppCompatActivity {
     }
 
 
-//        searchButton.setOnClickListener(v -> {
-//            String searchUser = searchInput.getText().toString();
-//            //if the user that we want to add is equals to the current user name - not possible
-//            if(searchUser.equals(extras.getString("username"))){
-//                Toast.makeText(SearchUserActivity.this,"You can't add yourself :)",Toast.LENGTH_SHORT).show();
-//            }
-//            new Thread(()->{
-//                UserDatabase userDatabase= UserDatabase.getUserDatabase(this);
-//                UserDao userDao = userDatabase.userDao();
-//                UserEntity.UserWithPws searchUserEntity = userDao.get(searchUser);
-//                getUserFromAPI(searchUserEntity);
-//            }).start();
-//        });
-//    }
-
     private void getUserFromAPI(UserEntity.UserWithPws searchUser){
         UserAPI api = new UserAPI();
         api.getUser(searchUser, new GetUserCallback() {

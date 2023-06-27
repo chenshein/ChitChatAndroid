@@ -1,14 +1,11 @@
 package com.example.chitchat.adapter;
 
-import android.support.annotation.NonNull;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.core.content.ContextCompat;
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
@@ -16,19 +13,20 @@ import com.example.chitchat.data.Msg.Message;
 
 import java.util.List;
 
-public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
-    private List<Message> messageList;
-    private String currentUsername;
+import de.hdodenhof.circleimageview.CircleImageView;
 
-    public MessageAdapter(List<Message> messageList, String currentUsername) {
+public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
+
+    private List<Message> messageList;
+
+    public MessageAdapter(List<Message> messageList) {
         this.messageList = messageList;
-        this.currentUsername = currentUsername;
     }
 
     @NonNull
     @Override
     public MessageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_message, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.reciver_bubble, parent, false);
         return new MessageViewHolder(view);
     }
 
@@ -36,23 +34,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Message message = messageList.get(position);
 
-        // Set the message content
-        holder.contentTextView.setText(message.getContent());
 
-        // Set the appropriate alignment for the message bubble based on the sender
-        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) holder.bubbleLayout.getLayoutParams();
-        if (message.getSender().equals(currentUsername)) {
-            // Align to the right for the current user's messages
-            params.gravity = Gravity.END;
-            holder.bubbleLayout.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.sender_shape));
-        } else {
-            // Align to the left for other users' messages
-            params.gravity = Gravity.START;
-            holder.bubbleLayout.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.reciver_shape));
-        }
-        holder.bubbleLayout.setLayoutParams(params);
+        holder.senderTextView.setText(message.getSender().getUsername());
     }
-
 
     @Override
     public int getItemCount() {
@@ -60,13 +44,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     }
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
-        LinearLayout bubbleLayout;
-        TextView contentTextView;
+        TextView senderTextView;
+        TextView messageTextView;
 
         public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
-            bubbleLayout = itemView.findViewById(R.id.message_bubble_layout);
-            contentTextView = itemView.findViewById(R.id.message_content_text);
+            // Initialize the views here
+            senderTextView = itemView.findViewById(R.id.msgsendertyp);
         }
     }
 }

@@ -31,6 +31,30 @@ public class UserAPI {
         webServiceAPI = retrofit.create(UserServiceAPI.class);
     }
 
+
+    public void getUserByName(String token,String username,GetUserCallback callback){
+
+        String authorizationHeader = "Bearer " + token;
+        Call<UserEntity> getUserCall = webServiceAPI.getUserWithoutPass(authorizationHeader,username);
+        getUserCall.enqueue(new Callback<UserEntity>() {
+            @Override
+            public void onResponse(Call<UserEntity> call, Response<UserEntity> response) {
+                if (response.isSuccessful()) {
+                    UserEntity user = response.body();
+                    callback.onGetSuccess(user);
+                } else {
+                    callback.onGetFailure("User does not exist");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UserEntity> call, Throwable t) {
+                System.out.println("ON FAILURE IN GET USER");
+                callback.onGetFailure("Failed to get user");
+            }
+        });
+
+    }
     public void getUser(UserEntity.UserWithPws user, GetUserCallback callback) {
         if (user==null){
             callback.onGetFailure("No such user");

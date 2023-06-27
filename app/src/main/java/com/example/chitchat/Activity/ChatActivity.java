@@ -2,27 +2,30 @@ package com.example.chitchat.Activity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chitchat.R;
 import com.example.chitchat.adapter.MessageAdapter;
 import com.example.chitchat.api.ChatAPI;
+import com.example.chitchat.data.CallBackMessages;
 import com.example.chitchat.data.Chat.ChatDao;
 import com.example.chitchat.data.Chat.ChatEntity;
 import com.example.chitchat.data.Chat.ChatRespondGet;
 import com.example.chitchat.data.Chat.ChatsDatabase;
 import com.example.chitchat.data.ChatCallback;
+import com.example.chitchat.data.Msg.GetMessagesRespo;
 import com.example.chitchat.data.Msg.Message;
 import com.example.chitchat.data.User.UserDao;
 import com.example.chitchat.data.User.UserDatabase;
@@ -30,6 +33,7 @@ import com.example.chitchat.data.User.UserEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -53,8 +57,9 @@ public class ChatActivity extends AppCompatActivity {
     ImageButton sent_msg_btn;
     ImageButton back_btn;
     TextView otherDisplayName;
-    RecyclerView recyclerView;
+    RecyclerView recyclerViewMsg;
     CircleImageView otherImg;
+    MessageAdapter messageAdapter;
 
 
     @SuppressLint("MissingInflatedId")
@@ -80,38 +85,16 @@ public class ChatActivity extends AppCompatActivity {
         otherDisplayName = findViewById(R.id.other_username);
         input_msg = findViewById(R.id.chat_input_msg);
         back_btn = findViewById(R.id.go_back);
-        recyclerView = findViewById(R.id.recycler_msg);
         otherImg = findViewById(R.id.other_img);
+
+        recyclerViewMsg = findViewById(R.id.recycler_msg);
+
+       // messageAdapter= new MessageAdapter(this,messageList,current_user.getUsername());
+        recyclerViewMsg.setAdapter(messageAdapter);
+        recyclerViewMsg.setLayoutManager(new LinearLayoutManager(this));
 
         //set the display username to be shown
         otherDisplayName.setText(otherUserDisplayName);
-
-
-        findChatId(currentUsername, otherUserName);
-        System.out.println("chat id is " + chatIdServer);
-
-
-        new Thread(() -> {
-            UserDatabase userDatabase = UserDatabase.getUserDatabase(this);
-            UserDao userDao = userDatabase.userDao();
-            current_user= userDao.get(currentUsername);
-        }).start();
-
-
-        // Set the user's photo to the CircleImageView
-        Bitmap userPhotoBitmap = decodeBase64ToBitmap(otherUserImg);
-        if (userPhotoBitmap != null) {
-            otherImg.setImageBitmap(userPhotoBitmap);
-        }
-        getOnCreateChatroomModel();
-
-        //go back to chats view
-        back_btn.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AllChatsActivity.class);
-            intent.putExtra("username", extras.getString("current_username"));
-            startActivity(intent);
-            finish();
-        });
 
         sent_msg_btn.setOnClickListener(v -> {
             String msg = input_msg.getText().toString().trim();
@@ -120,72 +103,53 @@ public class ChatActivity extends AppCompatActivity {
             }
             sendMessageToUser(msg);
         });
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        // Create the message adapter and set it to the RecyclerView
-        MessageAdapter messageAdapter = new MessageAdapter(messageList, current_user.getUsername());
-        recyclerView.setAdapter(messageAdapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-    }
 
-    void sendMessageToUser(String message) {
-        Message newMessage = new Message(current_user, message);
-        messageList.add(newMessage);
+        // Call the modified findChatId function with the callback
+        findChatId(currentUsername, otherUserName, () -> {
 
-        // Update the messages array for the chat with the given chatIdServer
-        addMessageToChat(newMessage);
-        // print messageList items
-//        for (Message msg : messageList) {
-//            System.out.println(msg.content);
-//        }
-        input_msg.setText("");
-        MessageAdapter messageAdapter = new MessageAdapter(messageList, current_user.getUsername());
-        recyclerView.setAdapter(messageAdapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-    }
 
-    private void addMessageToChat(Message message) {
-        new Thread(() -> {
-            ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
-            ChatDao chatDao = chatsDatabase.chatDao();
-            System.out.println("chat id is " + this.chatIdRoom);
-            ChatEntity chatEntity = chatDao.getChatById(this.chatIdRoom);
-            if (chatEntity != null) {
-                System.out.println("chat entity is not null");
-                List<Message> chatMessages = chatEntity.getMessages();
-                chatMessages.add(message);
-                // print chatMessages items
-                for (Message msg : chatMessages) {
-                    System.out.println(msg.content);
-                }
-                chatDao.updateChat(chatEntity);
-            } else {
-                System.out.println("chat entity is null");
+            // Set the user's photo to the CircleImageView
+            Bitmap userPhotoBitmap = decodeBase64ToBitmap(otherUserImg);
+            if (userPhotoBitmap != null) {
+                runOnUiThread(() -> otherImg.setImageBitmap(userPhotoBitmap));
             }
-        }).start();
+            // Rest of the code...
 
-        new Thread(() -> {
-            ChatAPI chatAPI = new ChatAPI();
-            chatAPI.addMsg(current_user, message.content, chatIdServer, new ChatCallback() {
+            //go back to chats view
+            back_btn.setOnClickListener(v -> {
+                onBackPressed();
+            });
+
+
+        });
+    }
+
+    private void getAllMsg(){
+        new Thread(()->{
+            ChatAPI chatAPI =  new ChatAPI();
+            chatAPI.getMessages(chatIdServer, current_user, new CallBackMessages() {
                 @Override
-                public void onSuccessRes(String val) {
-                    //handle success
+                public void onGetSuccess(List<GetMessagesRespo> messagesRespoList) {
+                    for (GetMessagesRespo messagesRespo: messagesRespoList){
+                        UserEntity sender = messagesRespo.getSender();
+                        System.out.println(sender);
+                        String content = messagesRespo.getContent();
+                        String created = messagesRespo.getCreated();
+                        String id = messagesRespo.getId();
+                        Message message = new Message(id,chatIdRoom,chatIdServer,sender,content,created);
+                        messageList.add(message);
+                    }
                 }
 
                 @Override
-                public void onSuccess(List<ChatRespondGet> chatEntities) {
-                    MessageAdapter messageAdapter = new MessageAdapter(messageList, currentUsername);
-                    recyclerView.setAdapter(messageAdapter);
-                    recyclerView.setLayoutManager(new LinearLayoutManager(ChatActivity.this));
-                }
+                public void onGetFailure(String error) {
 
-                @Override
-                public void onFailure(String errorMessage) {}
+                }
             });
         }).start();
     }
 
-    // TODO: implement this findChatId method
-    private void findChatId(String currentUser, String otherUser) {
+    private void findChatId(String currentUser, String otherUser, final Runnable callback) {
         Executor executor = Executors.newSingleThreadExecutor();
         Runnable asyncRunnable = () -> {
             Context context = this; // Store the context reference
@@ -193,6 +157,7 @@ public class ChatActivity extends AppCompatActivity {
             UserDatabase userDatabase = UserDatabase.getUserDatabase(context);
             UserDao userDao = userDatabase.userDao();
             UserEntity.UserWithPws currentUserEntity = userDao.get(currentUser);
+            current_user = currentUserEntity;
 
             if (currentUserEntity != null) {
                 ChatAPI chatAPI = new ChatAPI();
@@ -203,9 +168,11 @@ public class ChatActivity extends AppCompatActivity {
 
                     @Override
                     public void onSuccess(List<ChatRespondGet> allUserChats) {
-                        if(allUserChats == null){
+                        if (allUserChats == null) {
                             return;
                         }
+
+                        // Find the chatIdServer for the current conversation
                         for (ChatRespondGet chat : allUserChats) {
                             if (chat.getUser().getUsername().equals(otherUser)) {
                                 chatIdServer = chat.getId();
@@ -213,22 +180,35 @@ public class ChatActivity extends AppCompatActivity {
                                 break;
                             }
                         }
+                        getAllMsg();
 
                         new Thread(() -> {
                             ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(context);
                             ChatDao chatDao = chatsDatabase.chatDao();
                             List<ChatEntity> allChats = chatDao.getAllChats();
-                            for (ChatEntity chat : allChats){
+
+                            // Find the chatIdRoom for the current conversation
+                            for (ChatEntity chat : allChats) {
                                 System.out.println("chat id server is " + chat.getChatIdServer());
-                                if(chat.getChatIdServer().equals(chatIdServer)){
+                                if (chat.getChatIdServer().equals(chatIdServer)) {
                                     chatIdRoom = chat.getChatIdRoom();
                                     System.out.println("chat id room is " + chatIdRoom);
                                 }
                             }
+
                             ChatEntity chatEntity = chatDao.getChatById(chatIdRoom);
                             if (chatEntity != null) {
                                 messageList = chatEntity.getMessages();
                             }
+
+                            // Invoke the callback once the chat ID is found and messages are retrieved
+//                            runOnUiThread(() -> {
+//                                // Notify the adapter of the data changes
+//                                messageAdapter.notifyDataSetChanged();
+//
+//                                // Invoke the callback
+//                                callback.run();
+//                            });
                         }).start();
                     }
 
@@ -240,48 +220,68 @@ public class ChatActivity extends AppCompatActivity {
             }
         };
         executor.execute(asyncRunnable);
-
-//        final AtomicInteger chatIdServer = new AtomicInteger(-1);
-//
-//        new Thread(() -> {
-//            ChatsDatabase chatsDatabase = ChatsDatabase.getUserDatabase(this);
-//            ChatDao chatDao = chatsDatabase.chatDao();
-//            List<ChatEntity> allChats = chatDao.getAllChats();
-//
-//            assert allChats != null;
-//            for (ChatEntity chatEntity : allChats) {
-//                List<UserEntity> users = chatEntity.getUsers();
-//
-//                boolean containsCurrentUser = false;
-//                boolean containsOtherUser = false;
-//
-//                for (UserEntity user : users) {
-//                    if (user.getUsername().equals(currentUser)) {
-//                        containsCurrentUser = true;
-//                    } else if (user.getUsername().equals(otherUser)) {
-//                        containsOtherUser = true;
-//                    }
-//
-//                    if (containsCurrentUser && containsOtherUser) {
-//                        chatIdServer.set(chatEntity.getChatId());
-//                        this.chatIdServer = chatEntity.getChatId();
-//                        System.out.println("chat id is " + this.chatIdServer);
-//                        // set the messageList to be the messages of the chat with the given chatIdServer
-//                        messageList = chatEntity.getMessages();
-//                        break;
-//                    }
-//                }
-////                System.out.println("chat id is " + chatIdServer.get());
-//            }
-//        }).start();
     }
 
-    public Bitmap decodeBase64ToBitmap(String base64String) {
-        byte[] decodedBytes = android.util.Base64.decode(base64String, android.util.Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+
+    private Bitmap decodeBase64ToBitmap(String base64String) {
+        try {
+            byte[] decodedBytes = Base64.decode(base64String, Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public static void getOnCreateChatroomModel() {
+    private void sendMessageToUser(String message) {
+        new Thread(() -> {
+            ChatAPI chatAPI = new ChatAPI();
+            chatAPI.addMsg(current_user, message, chatIdServer, new CallBackMessages() {
+                @Override
+                public void onGetSuccess(List<GetMessagesRespo> messagesRespoList) {
+                    runOnUiThread(() -> {
+                        UserEntity sender = messagesRespoList.get(0).getSender();
+                        String content = messagesRespoList.get(0).getContent();
+                        String created = messagesRespoList.get(0).getCreated();
+                        String id = messagesRespoList.get(0).getId();
+                        // Create a new Message instance with the current user and message
+                        Message newMessage = new Message(id,chatIdRoom,chatIdServer,sender,content,created);
+                        messageList.add(newMessage);
+
+
+//                        messageAdapter.notifyItemInserted(messageList.size() - 1);
+//                        recyclerViewMsg.scrollToPosition(messageList.size() - 1);
+//
+//                        // Notify the adapter of the data changes
+//                        messageAdapter.notifyItemInserted(messageList.size() - 1);
+
+                        // Clear the input message EditText
+                        input_msg.setText("");
+
+                    });
+                }
+
+                @Override
+                public void onGetFailure(String error) {}
+            });
+        }).start();
+    }
+
+
+
+    public void updateMessages(Message newMessage) {
+        if (Objects.equals(newMessage.getSender(), otherUserName)) {
+            messageList.add(newMessage);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    messageAdapter.notifyItemInserted(messageList.size() - 1);
+                    recyclerViewMsg.scrollToPosition(messageList.size() - 1);
+                }
+            });
+        } else {
+            //do update chats request
+        }
     }
 
 }
